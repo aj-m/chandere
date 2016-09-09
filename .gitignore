@@ -1,0 +1,10 @@
+__pycache__/
+Chandere2.egg-info/
+build/
+dist/
+.tox/
+.DS_Store
+.coverage
+*.egg-info
+*.pyc
+*.egg
