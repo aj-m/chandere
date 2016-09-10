@@ -3,6 +3,8 @@ Chandere2.egg-info/
 build/
 dist/
 .tox/
+.cache/
+.hypothesis/
 .DS_Store
 .coverage
 *.egg-info
