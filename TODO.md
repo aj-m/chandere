@@ -1,6 +1,7 @@
-=====================
-By Next Minor Release
-=====================
+====================
+Short Term Proposals
+====================
+* Clean up output.py and its tests.
 
 
 ===================

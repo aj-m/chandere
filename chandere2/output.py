@@ -1,4 +1,4 @@
-"""Wrappers for giving program feedback."""
+"""Wrappers for giving detailed program feedback to the user."""
 
 import sys
 
