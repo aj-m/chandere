@@ -6,7 +6,7 @@ import asyncio
 import sys
 
 from chandere2.cli import parser
-from chandere2.connection import generate_uri
+from chandere2.connection import (generate_uri, test_connection)
 from chandere2.output import Console
 
 
@@ -16,9 +16,18 @@ def main():
     output = Console(args.debug)
     event_loop = asyncio.get_event_loop()
 
+    uris = list(map(generate_uri, args.targets))
+
+    if all(item is None for item in uris):
+        output.write_error("No valid targets provided.")
+        sys.exit(1)
+
+    if args.mode is None:
+        test_connection(uris, args.ssl, output)
+        sys.exit(0)
+
     try:
-        output.write_debug(str(vars(args)))
-        output.write_debug(generate_uri(args.targets[0]))
+        pass
     except KeyboardInterrupt:
         output.write("Quitting...")
     finally:

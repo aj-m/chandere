@@ -5,7 +5,27 @@ import urllib.parse
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere2.connection import generate_uri
+from chandere2.connection import (generate_uri, test_connection, thread_in_uri)
+from chandere2.output import Console
+
+from tests.dummy_objects import FakeOutput
+
+
+## TODO: Clean up test. <jakob@memeware.net>
+class TestConnectionTest(unittest.TestCase):
+    def setUp(self):
+        self.fake_stdout = FakeOutput()
+        self.fake_stderr = FakeOutput()
+        self.fake_output = Console(output=self.fake_stdout,
+                                   error=self.fake_stderr)
+    
+    def test_successful_connection(self):
+        test_connection(["a.4cdn.org/g/threads.json"], False, self.fake_output)
+        self.assertEqual(self.fake_stdout.last_received[0][0], ">")
+
+    def test_failed_connection(self):
+        test_connection(["a.4cdn.org/z/threads.json"], False, self.fake_output)
+        self.assertEqual(self.fake_stderr.last_received[0][7:14], "FAILED:")
 
 
 class UrlGenerationTest(unittest.TestCase):
@@ -33,7 +53,7 @@ class UrlGenerationTest(unittest.TestCase):
         # When an empty string and thread number are combined and separated
         # by a forward slash, the function will interpret that as just a
         # board, rather than a board and a thread.
-        if expected_board == "":
+        if expected_board.strip() == "":
             expected_result = "a.4cdn.org/%d/threads.json" % thread
         elif not re.search(r"[^\s\/]", expected_board):
             expected_result = None
@@ -46,3 +66,9 @@ class UrlGenerationTest(unittest.TestCase):
 
     def test_fail_unknown_imageboard(self):
         self.assertIs(generate_uri("/g/", imageboard="krautchan"), None)
+
+
+class ThreadCheckingTest(unittest.TestCase):
+    def test_thread_in_uri(self):
+        self.assertTrue(thread_in_uri("a.4cdn.org/b/12345678.json"))
+        self.assertFalse(thread_in_uri("a.4cdn.org/b/threads.json"))

@@ -6,10 +6,7 @@ import hypothesis.strategies as st
 
 from chandere2.output import Console
 
-
-class FakeOutput(object):
-    def write(self, *args):
-        self.last_received = args
+from tests.dummy_objects import FakeOutput
 
 
 class OutputTest(unittest.TestCase):
