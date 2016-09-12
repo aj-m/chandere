@@ -102,8 +102,8 @@ scraper_opts.add_argument(
 scraper_opts.add_argument(
     "--ssl",
     action="store_true",
-    help="Uses HTTPS if it is available. Be aware that no attempt\nis made to "
-    "verify the SSL certificate of the server.\n\n"
+    help="Uses HTTPS if it is available.\n\n"
+    # Redoc this
 )
 
 

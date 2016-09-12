@@ -1,6 +1,7 @@
 """Module for handling connections to the imageboard."""
 
-from contextlib import closing
+import contextlib
+import ssl
 import sys
 import re
 import urllib.error
@@ -13,22 +14,31 @@ KNOWN_IMAGEBOARDS = {"4chan": "a.4cdn.org",
                      "lainchan": "lainchan.org"}
 
 
-## TODO: Clean up function. <jakob@memeware.net>
-def test_connection(uris: list, ssl: bool, output) -> None:
+def test_connection(uris: list, use_ssl: bool, output) -> None:
     """Attempts connections to each of the given URIs, logging the
     response headers or status code to the designated output.
     """
+    # create_default_context is used to make use of System-supplied SSL/TLS
+    # certs. A default SSLContext constructor would not use certificates.
+    context = ssl.create_default_context() if use_ssl else None
+    prefix = "https://" if use_ssl else "http://"
+
     for index, uri in enumerate(uris):
+        if uri is None:
+            continue
         try:
-            if uri is None: continue
-            request = urllib.request.Request("http://" + uri)
+            request = urllib.request.Request(prefix + uri)
             request.add_header("User-agent", USERAGENT)
-            with closing(urllib.request.urlopen(request)) as connection:
-                headers = str(connection.headers)[:-2]
+
+            connection = urllib.request.urlopen(request, context=context)
+            with contextlib.closing(connection) as result:
+                headers = str(result.headers)[:-2]
+
         except urllib.error.HTTPError as status:
             output.write_error("FAILED: %s with %s." % (uri, status))
+
         else:
-            output.write("OKAY: %s" % uri)
+            output.write("CONNECTED: %s" % uri)
             for line in headers.split("\n"):
                 output.write(">", line)
             if index != len(uris) - 1:

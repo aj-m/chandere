@@ -18,14 +18,16 @@ class TestConnectionTest(unittest.TestCase):
         self.fake_stderr = FakeOutput()
         self.fake_output = Console(output=self.fake_stdout,
                                    error=self.fake_stderr)
-    
+
     def test_successful_connection(self):
-        test_connection(["a.4cdn.org/g/threads.json"], False, self.fake_output)
-        self.assertEqual(self.fake_stdout.last_received[0][0], ">")
+        uris = ["a.4cdn.org/f/threads.json", "a.4cdn.org/g/threads.json"]
+        test_connection(uris, False, self.fake_output)
+        self.assertIn(">", self.fake_stdout.last_received[0])
 
     def test_failed_connection(self):
-        test_connection(["a.4cdn.org/z/threads.json"], False, self.fake_output)
-        self.assertEqual(self.fake_stderr.last_received[0][7:14], "FAILED:")
+        uris = [None, "a.4cdn.org/z/threads.json"]
+        test_connection(uris, False, self.fake_output)
+        self.assertIn("FAILED:", self.fake_stderr.last_received[0])
 
 
 class UrlGenerationTest(unittest.TestCase):
