@@ -13,6 +13,8 @@ Pull requests are greatly, greatly appreciated and will be accepted in a timely 
 
 Your contribution should follow [PEP 8 Guidelines](https://www.python.org/dev/peps/pep-0008/ "PEP 8"), and, if possible, [Google's Python Style Guidelines](https://google.github.io/styleguide/pyguide.html "Google Style Guidelines").
 
+Please be sure to make use of newer Python styling features, such as type hinting and "yield from."
+
 Tests are done in Tox, which is run from the repository's root directory. Please write unittests for anything you add. Unittest.mock is also used, which will require a backport ("mock" on PyPI) for versions of Python before 3.3.
 
 Feel free to add yourself to the AUTHORS.md file.

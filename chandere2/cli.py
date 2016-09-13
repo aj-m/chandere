@@ -4,7 +4,7 @@ import argparse
 import textwrap
 
 from chandere2 import (__doc__, __version__)
-from chandere2.connection import KNOWN_IMAGEBOARDS
+from chandere2.uri import KNOWN_IMAGEBOARDS
 
 
 class CustomHelp(argparse.HelpFormatter):
@@ -26,7 +26,7 @@ class CustomHelp(argparse.HelpFormatter):
 parser = argparse.ArgumentParser(
     add_help=False,
     formatter_class=CustomHelp,
-    usage="%(prog)s (TARGETS) [-c CHAN] [OPTIONS]",
+    usage="%(prog)s (TARGETS) [-i CHAN] [OPTIONS]",
     description=textwrap.fill(__doc__.strip(), width=80)
 )
 
@@ -83,14 +83,11 @@ scraper_opts.add_argument(
     "given.\n\n"
 )
 scraper_opts.add_argument(
-    "-c",
-    "--chan",
+    "-i",
+    "--imageboard",
     default="4chan",
     help="Used to designate the imageboard to be scraped from.\nAvailable "
-    "aliases can be listed with -lc. Unlisted\nimageboards can be provided "
-    "that they are passed in\nthe form of an url (E.g. "
-    "\"https://www.krautchan.net\")\nhowever this will likely not work for "
-    "file downloading.\n\n"
+    "aliases can be listed with --list-imageboards.\n\n"
 )
 scraper_opts.add_argument(
     "--continuous",

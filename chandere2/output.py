@@ -1,4 +1,6 @@
-"""Wrappers for giving detailed program feedback to the user."""
+"""Subroutines for producing file output, as well as wrappers for giving
+detailed program feedback to the user.
+"""
 
 import sys
 
