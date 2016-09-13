@@ -12,7 +12,6 @@ def test_connection(target_uris: list, use_ssl: bool, output) -> None:
     """Attempts connections to each of the given URIs, logging the
     response headers or status code to the designated output.
     """
-
     # create_default_context is used to make use of System-supplied SSL/TLS
     # certs. A default SSLContext constructor would not use certificates.
     context = ssl.create_default_context() if use_ssl else None

@@ -9,7 +9,6 @@ from chandere2.output import Console
 from tests.dummy_objects import FakeOutput
 
 
-## TODO: Clean up test. <jakob@memeware.net>
 class TestConnectionTest(unittest.TestCase):
     def setUp(self):
         self.fake_stdout = FakeOutput()
@@ -20,9 +19,9 @@ class TestConnectionTest(unittest.TestCase):
     def test_successful_connection(self):
         uris = ["a.4cdn.org/f/threads.json", "a.4cdn.org/g/threads.json"]
         test_connection(uris, False, self.fake_output)
-        self.assertIn(">", self.fake_stdout.last_received[0])
+        self.assertIn(">", self.fake_stdout.last_received)
 
     def test_failed_connection(self):
         uris = [None, "a.4cdn.org/z/threads.json"]
         test_connection(uris, False, self.fake_output)
-        self.assertIn("FAILED:", self.fake_stderr.last_received[0])
+        self.assertIn("FAILED:", self.fake_stderr.last_received)

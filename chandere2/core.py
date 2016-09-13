@@ -14,24 +14,25 @@ from chandere2.output import Console
 def main():
     """Primary entry-point to Chandere2."""
     args = parser.parse_args()
-    output = Console(args.debug)
+    output = Console(debug=args.debug)
     event_loop = asyncio.get_event_loop()
 
     # A hashmap is used for faster, more efficient lookups.
-    ## TODO: Clean up. <jakob@memeware.net>
-    ## TODO: Sanity-checking. <jakob@memeware.net>
     target_uris = {}
     for target in args.targets:
         board, thread = strip_target(target)
-        uri = generate_uri(board, thread, args.imageboard)
-        target_uris[uri] = (board, bool(thread))
+        if board is not None:
+            uri = generate_uri(board, thread, args.imageboard)
+            target_uris[uri] = (board, bool(thread))
+        else:
+            output.write_error("Invalid target: %s" % target)
 
-    if all(uri is None for uri in target_uris):
+    if not target_uris:
         output.write_error("No valid targets provided.")
         sys.exit(1)
 
-    # args.mode will only be None if no other
-    # mode of operation is specified by the user.
+    # args.mode will only be None if no other mode
+    # of operation is specified by the user.
     if args.mode is None:
         test_connection(target_uris, args.ssl, output)
         sys.exit(0)

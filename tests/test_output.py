@@ -20,7 +20,7 @@ class OutputTest(unittest.TestCase):
     def test_write(self, text):
         self.output.write(*text)
         self.assertEqual(self.fake_stdout.last_received,
-                         (" ".join(text) + "\n",))
+                         " ".join(text) + "\n")
 
     @hypothesis.given(st.text(), st.text())
     def test_write_debug(self, info, debug):
@@ -28,28 +28,28 @@ class OutputTest(unittest.TestCase):
         self.output.write(info)
         self.output.write_debug(debug)
         self.assertEqual(self.fake_stdout.last_received,
-                         (info + "\n",))
+                         info + "\n")
 
         self.output.debug = True
         self.output.write_debug(debug)
         self.assertEqual(self.fake_stdout.last_received,
-                         ("DEBUG: " + debug + "\n",))
+                         "DEBUG: %s\n" % debug)
 
     @hypothesis.given(st.lists(st.text()))
     def test_write_error(self, text):
         self.output.write_error(*text)
         self.assertEqual(self.fake_stderr.last_received,
-                         ("ERROR: " + " ".join(text) + "\n",))
+                         "ERROR: %s\n" % " ".join(text))
 
     @hypothesis.given(st.text(), st.text())
     def test_write_different_end(self, text, end):
         self.output.debug = True
         self.output.write(text, end=end)
         self.assertEqual(self.fake_stdout.last_received,
-                         (text + end,))
+                         text + end)
         self.output.write_debug(text, end=end)
         self.assertEqual(self.fake_stdout.last_received,
-                         ("DEBUG: " + text + end,))
+                         "DEBUG: " + text + end)
         self.output.write_error(text, end=end)
         self.assertEqual(self.fake_stderr.last_received,
-                         ("ERROR: " + text + end,))
+                         "ERROR: " + text + end)
