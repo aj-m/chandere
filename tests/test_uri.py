@@ -41,7 +41,7 @@ class TargetStrippingTest(unittest.TestCase):
     ## TODO: Clean up. <jakob@memeware.net>
     @hypothesis.given(st.characters(blacklist_characters="/"),
                       st.integers(min_value=0))
-    def test_bare_board(self, target_board, target_thread):
+    def test_board_with_thread(self, target_board, target_thread):
         # Certain unicode characters, when encoded and decoded will
         # become an empty string. The following is done to handle that.
         expected_thread = str(target_thread)
