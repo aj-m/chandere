@@ -7,8 +7,8 @@ import sys
 
 from chandere2.cli import parser
 from chandere2.connection import test_connection
-from chandere2.uri import (generate_uri, strip_target)
 from chandere2.output import Console
+from chandere2.uri import (generate_uri, strip_target)
 
 
 def main():
@@ -38,8 +38,7 @@ def main():
         sys.exit(0)
 
     try:
-        for uri in target_uris:
-            pass
+        pass
     except KeyboardInterrupt:
         output.write("Quitting...")
     finally:

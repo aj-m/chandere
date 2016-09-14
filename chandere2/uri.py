@@ -8,7 +8,6 @@ KNOWN_IMAGEBOARDS = {"4chan": "a.4cdn.org",
                      "lainchan": "lainchan.org"}
 
 
-## TODO: Add sanity-checking functionality. <jakob@memeware.net>
 def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
     """Forms a valid URN for the given board, thread and imageboard.
     None is returned if the imageboard does not have a known URI.

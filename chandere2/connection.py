@@ -37,3 +37,31 @@ def test_connection(target_uris: list, use_ssl: bool, output) -> None:
                 output.write(">", line)
             if index != len(target_uris) - 1:
                 output.write()
+
+
+def get_content(uri: str, target_uris: list, use_ssl: bool, output) -> str:
+    """Tries to fetch the content at the specified URI, returning the
+    content if successful. If the server returns a status of 404 or 403,
+    the URI is removed from the target list and None is returned.
+    """
+    context = ssl.create_default_context() if use_ssl else None
+    prefix = "https://" if use_ssl else "http://"
+
+    try:
+        request = urllib.request.Request(prefix + uri)
+        request.add_header("User-agent", USERAGENT)
+
+        connection = urllib.request.urlopen(request, context=context)
+        with contextlib.closing(connection) as result:
+            content = connection.read().decode()
+    except urllib.error.HTTPError as httpstatus:
+        if httpstatus.code == 404:
+            output.write_error("%s does not exist." % uri)
+            del target_uris[uri]
+        elif httpstatus.code == 403:
+            output.write_error("Servers are blocking web scrapers.")
+            del target_uris[uri]
+        elif httpstatus.code == 304:
+            output.write_debug("Page has not updated since last load.")
+    else:
+        return content
