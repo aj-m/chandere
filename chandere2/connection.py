@@ -1,67 +1,55 @@
 """Module for handling connections with the imageboard."""
 
-import contextlib
-import ssl
-import urllib.error
-import urllib.request
+import asyncio
 
-USERAGENT = "Chandere/2.0"
+import aiohttp
+
+DEFAULT_HEADERS = {"user-agent": "Chandere/2.1"}
 
 
-def test_connection(target_uris: list, use_ssl: bool, output) -> None:
+async def test_connection(target_uris: list, use_ssl: bool, output) -> None:
     """Attempts connections to each of the given URIs, logging the
     response headers or status code to the designated output.
     """
-    # create_default_context is used to make use of System-supplied SSL/TLS
-    # certs. A default SSLContext constructor would not use certificates.
-    context = ssl.create_default_context() if use_ssl else None
+    connector = aiohttp.TCPConnector(verify_ssl=use_ssl)
     prefix = "https://" if use_ssl else "http://"
 
-    for index, uri in enumerate(target_uris):
-        if uri is None:
-            continue
-        try:
-            request = urllib.request.Request(prefix + uri)
-            request.add_header("User-agent", USERAGENT)
-
-            connection = urllib.request.urlopen(request, context=context)
-            with contextlib.closing(connection) as result:
-                headers = str(result.headers)[:-2]
-
-        except urllib.error.HTTPError as status:
-            output.write_error("FAILED: %s with %s." % (uri, status))
-
-        else:
-            output.write("CONNECTED: %s" % uri)
-            for line in headers.split("\n"):
-                output.write(">", line)
-            if index != len(target_uris) - 1:
-                output.write()
+    async with aiohttp.ClientSession(connector=connector) as session:
+        for index, uri in enumerate(target_uris):
+            headers = DEFAULT_HEADERS
+            async with session.get(prefix + uri, headers=headers) as response:
+                if response.status == 200:
+                    output.write("CONNECTED: %s" % uri)
+                    for header in response.headers:
+                        ## TODO: Clean up. <jakob@memware.net>
+                        output.write("> %s: %s" % (header, response.headers.get(header)))
+                    if index != len(target_uris) - 1:
+                        output.write()
+                else:
+                    output.write_error("FAILED: %s with %s." % (uri, response.status))
 
 
-def get_content(uri: str, target_uris: list, use_ssl: bool, output) -> str:
+async def enumerate_targets(target_uris: list, use_ssl: bool, output) -> None:
     """Tries to fetch the content at the specified URI, returning the
     content if successful. If the server returns a status of 404 or 403,
     the URI is removed from the target list and None is returned.
     """
-    context = ssl.create_default_context() if use_ssl else None
+    # The prefix is actually required for use with Aiohttp.
+    connector = aiohttp.TCPConnector(verify_ssl=use_ssl)
     prefix = "https://" if use_ssl else "http://"
 
-    try:
-        request = urllib.request.Request(prefix + uri)
-        request.add_header("User-agent", USERAGENT)
-
-        connection = urllib.request.urlopen(request, context=context)
-        with contextlib.closing(connection) as result:
-            content = connection.read().decode()
-    except urllib.error.HTTPError as httpstatus:
-        if httpstatus.code == 404:
-            output.write_error("%s does not exist." % uri)
-            del target_uris[uri]
-        elif httpstatus.code == 403:
-            output.write_error("Servers are blocking web scrapers.")
-            del target_uris[uri]
-        elif httpstatus.code == 304:
-            output.write_debug("Page has not updated since last load.")
-    else:
-        return content
+    async with aiohttp.ClientSession(connector=connector) as session:
+        for uri in target_uris:
+            headers = DEFAULT_HEADERS + {"last-modified": target_uris[uri][2]}
+            async with session.get(prefix + uri, headers=headers) as response:
+                if response.status == 200:
+                    target_uris[uri][2] = response.headers.get("last-modified")
+                    await response.text()
+                elif response.status == 404:
+                    output.write_error("%s does not exist." % uri)
+                    del target_uris[uri]
+                elif response.status == 403:
+                    output.write_error("Servers are blocking web scrapers.")
+                    del target_uris[uri]
+                elif response.status == 304:
+                    output.write_debug("Page has not updated since last load.")

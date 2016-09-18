@@ -26,7 +26,7 @@ setup(
     download_url="https://github.com/TsarFox/chandere2",
     packages=["chandere2"],
     include_package_data=True,
-    install_requires=[],
+    install_requires=["aiohttp"],
     extras_require={},
     tests_require=["tox", "mock", "hypothesis"],
     entry_points={"console_scripts": ["chandere2 = chandere2.core:main"]},

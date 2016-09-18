@@ -23,7 +23,7 @@ def main():
         board, thread = strip_target(target)
         if board is not None:
             uri = generate_uri(board, thread, args.imageboard)
-            target_uris[uri] = (board, bool(thread))
+            target_uris[uri] = [board, bool(thread), ""]
         else:
             output.write_error("Invalid target: %s" % target)
 
@@ -31,11 +31,11 @@ def main():
         output.write_error("No valid targets provided.")
         sys.exit(1)
 
+    ## TODO: Clean up. <jakob@memeware.net>
     # args.mode will only be None if no other mode
     # of operation is specified by the user.
     if args.mode is None:
-        test_connection(target_uris, args.ssl, output)
-        sys.exit(0)
+        event_loop.run_until_complete(test_connection(target_uris, args.ssl, output))
 
     try:
         pass
