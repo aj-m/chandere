@@ -8,7 +8,7 @@ DEFAULT_HEADERS = {"user-agent": "Chandere/2.1"}
 
 
 async def test_connection(target_uris: list, use_ssl: bool, output) -> None:
-    """Attempts connections to each of the given URIs, logging the
+    """Attempts connections to each of the given URIs, writing the
     response headers or status code to the designated output.
     """
     connector = aiohttp.TCPConnector(verify_ssl=use_ssl)
@@ -16,6 +16,7 @@ async def test_connection(target_uris: list, use_ssl: bool, output) -> None:
 
     async with aiohttp.ClientSession(connector=connector) as session:
         for index, uri in enumerate(target_uris):
+            ## TODO: Clean up. <jakob@memeware.net>
             headers = DEFAULT_HEADERS
             async with session.get(prefix + uri, headers=headers) as response:
                 if response.status == 200:
@@ -29,18 +30,24 @@ async def test_connection(target_uris: list, use_ssl: bool, output) -> None:
                     output.write_error("FAILED: %s with %s." % (uri, response.status))
 
 
+## THIS DOES NOT WORK -- Changing dictionary size causes a runtime error.
+## Potential fixes:
+## * Break up into separate coroutines, having a coroutine for enumerating and
+## pipelining URIs, and a coroutine for grabbing them?
+## * Don't delete until after iterating.
+## i dunno dud
 async def enumerate_targets(target_uris: list, use_ssl: bool, output) -> None:
     """Tries to fetch the content at the specified URI, returning the
     content if successful. If the server returns a status of 404 or 403,
     the URI is removed from the target list and None is returned.
     """
-    # The prefix is actually required for use with Aiohttp.
     connector = aiohttp.TCPConnector(verify_ssl=use_ssl)
     prefix = "https://" if use_ssl else "http://"
 
     async with aiohttp.ClientSession(connector=connector) as session:
         for uri in target_uris:
-            headers = DEFAULT_HEADERS + {"last-modified": target_uris[uri][2]}
+            ## TODO: Clean up. <jakob@memeware.net>
+            headers = dict({"last-modified": target_uris[uri][2]}, **DEFAULT_HEADERS)
             async with session.get(prefix + uri, headers=headers) as response:
                 if response.status == 200:
                     target_uris[uri][2] = response.headers.get("last-modified")

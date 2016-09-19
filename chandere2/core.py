@@ -15,7 +15,7 @@ def main():
     """Primary entry-point to Chandere2."""
     args = parser.parse_args()
     output = Console(debug=args.debug)
-    event_loop = asyncio.get_event_loop()
+    loop = asyncio.get_event_loop()
 
     # A hashmap is used for faster, more efficient lookups.
     target_uris = {}
@@ -31,15 +31,15 @@ def main():
         output.write_error("No valid targets provided.")
         sys.exit(1)
 
-    ## TODO: Clean up. <jakob@memeware.net>
-    # args.mode will only be None if no other mode
-    # of operation is specified by the user.
-    if args.mode is None:
-        event_loop.run_until_complete(test_connection(target_uris, args.ssl, output))
-
     try:
-        pass
+        # args.mode will only be None if no other mode of operation
+        # is specified by the user.
+        if args.mode is None:
+            target_operation = test_connection(target_uris, args.ssl, output)
+        else:
+            target_operation = None ## Start pipeline
+        loop.run_until_complete(target_operation)
     except KeyboardInterrupt:
         output.write("Quitting...")
     finally:
-        event_loop.close()
+        loop.close()
