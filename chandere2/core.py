@@ -8,6 +8,7 @@ import sys
 from chandere2.cli import PARSER
 from chandere2.output import Console
 from chandere2.uri import (generate_uri, strip_target)
+from chandere2.write import get_path
 
 
 def main():
@@ -15,7 +16,9 @@ def main():
     args = PARSER.parse_args()
     output = Console(debug=args.debug)
 
+
     target_uris = {}
+
     for target in args.targets:
         board, thread = strip_target(target)
         if board is not None:
@@ -24,9 +27,15 @@ def main():
         else:
             output.write_error("Invalid target: %s" % target)
 
-    # if not target_uris:
-    #     output.write_error("No valid targets provided.")
-    #     sys.exit(1)
+    if not target_uris:
+        output.write_error("No valid targets provided.")
+        sys.exit(1)
+
+    output_path = get_path(args.output, args.mode, args.output_format)
+
+    if output_path is None:
+        output.write_error("The given output path is not writeable.")
+        sys.exit(1)
 
     # loop = asyncio.get_event_loop()
 

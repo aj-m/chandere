@@ -119,10 +119,10 @@ OUTPUT_OPTIONS.add_argument(
     help="Indicates the path in which downloaded filess or\narchives should "
     "be placed. Defaults to \"./\".\n\n"
 )
-# OUTPUT_OPTIONS.add_argument(
-#     "--output-format",
-#     metavar="FMT",
-#     default="ascii",
-#     help="Specify the format that output should be put into."
-#     # Redoc this.
-# )
+OUTPUT_OPTIONS.add_argument(
+    "--output-format",
+    metavar="FMT",
+    default="ascii",
+    help="Specify the format that output should be put into."
+    # Redoc this.
+)

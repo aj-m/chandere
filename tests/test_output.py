@@ -23,7 +23,7 @@ class OutputTest(unittest.TestCase):
                          " ".join(text) + "\n")
 
     @hypothesis.given(st.text(), st.text())
-    def test_write_debug(self, info, debug):
+    def test_write_if_debug(self, info, debug):
         self.output.debug = False
         self.output.write(info)
         self.output.write_debug(debug)
@@ -36,13 +36,13 @@ class OutputTest(unittest.TestCase):
                          "DEBUG: %s\n" % debug)
 
     @hypothesis.given(st.lists(st.text()))
-    def test_write_error(self, text):
+    def test_write_stderr(self, text):
         self.output.write_error(*text)
         self.assertEqual(self.fake_stderr.last_received,
                          "ERROR: %s\n" % " ".join(text))
 
     @hypothesis.given(st.text(), st.text())
-    def test_write_different_end(self, text, end):
+    def test_supply_end(self, text, end):
         self.output.debug = True
         self.output.write(text, end=end)
         self.assertEqual(self.fake_stdout.last_received,
