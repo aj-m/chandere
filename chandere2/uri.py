@@ -13,6 +13,7 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
     None is returned if the imageboard does not have a known URI.
     """
     imageboard_url = KNOWN_IMAGEBOARDS.get(imageboard)
+
     if imageboard_url is None:
         uri = None
     else:
@@ -27,8 +28,7 @@ def strip_target(target: str) -> tuple:
     None as the thread if a thread number was not in the target string.
     """
     # The target should be quoted and stripped prior to further
-    # handing, in the case that stranger unicode characters are
-    # given.
+    # handing, as Python has difficulty with some Unicode.
     target = urllib.parse.quote(target, safe="/ ", errors="ignore").strip()
 
     # The regular expression pattern matches a sequence of

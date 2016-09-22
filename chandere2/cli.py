@@ -23,7 +23,7 @@ class CustomHelp(argparse.HelpFormatter):
                                                  prefix)
 
 
-parser = argparse.ArgumentParser(
+PARSER = argparse.ArgumentParser(
     add_help=False,
     formatter_class=CustomHelp,
     usage="%(prog)s (TARGETS) [-i CHAN] [OPTIONS]",
@@ -31,21 +31,21 @@ parser = argparse.ArgumentParser(
 )
 
 
-docs = parser.add_argument_group("Documentation")
-docs.add_argument(
+DOCS = PARSER.add_argument_group("Documentation")
+DOCS.add_argument(
     "-h",
     "--help",
     action="help",
     help="Display this help page and exit."
 )
-docs.add_argument(
+DOCS.add_argument(
     "-v",
     "--version",
     action="version",
     version="Chandere2, version %s" % __version__,
     help="Display the currently installed version and exit."
 )
-docs.add_argument(
+DOCS.add_argument(
     "--list-imageboards",
     action="version",
     version="Available Imageboard Aliases: %s" % ", ".join(KNOWN_IMAGEBOARDS),
@@ -53,9 +53,9 @@ docs.add_argument(
 )
 
 
-scraper_opts = parser.add_argument_group("Scraper Options")
-modal_opts = scraper_opts.add_mutually_exclusive_group()
-modal_opts.add_argument(
+SCRAPER_OPTIONS = PARSER.add_argument_group("Scraper Options")
+MODAL_OPTIONS = SCRAPER_OPTIONS.add_mutually_exclusive_group()
+MODAL_OPTIONS.add_argument(
     "-d",
     "--download",
     action="store_const",
@@ -64,7 +64,7 @@ modal_opts.add_argument(
     help="Download every file in a thread, or crawl for every\nfile on "
     "a board if a thread is not specified.\n\n"
 )
-modal_opts.add_argument(
+MODAL_OPTIONS.add_argument(
     "-a",
     "--archive",
     action="store_const",
@@ -73,7 +73,7 @@ modal_opts.add_argument(
     help="Archive every post in a thread to plaintext, or crawl\nfor "
     "every post on a board if a thread is not specified.\n\n"
 )
-scraper_opts.add_argument(
+SCRAPER_OPTIONS.add_argument(
     "targets",
     metavar="TARGETS",
     nargs="+",
@@ -82,21 +82,22 @@ scraper_opts.add_argument(
     "scrape the entire board.\nMultiple board/thread combinations can be "
     "given.\n\n"
 )
-scraper_opts.add_argument(
+SCRAPER_OPTIONS.add_argument(
     "-i",
     "--imageboard",
+    metavar="X",
     default="4chan",
     help="Used to designate the imageboard to be scraped from.\nAvailable "
     "aliases can be listed with --list-imageboards.\n\n"
 )
-scraper_opts.add_argument(
+SCRAPER_OPTIONS.add_argument(
     "--continuous",
     action="store_false",
     dest="run_once",
     help="Rather than exiting as soon as the scraping task has\ncompleted, "
     "continue to refresh for new posts until a\nSIGINT is received.\n\n"
 )
-scraper_opts.add_argument(
+SCRAPER_OPTIONS.add_argument(
     "--ssl",
     action="store_true",
     help="Uses HTTPS if it is available.\n\n"
@@ -104,13 +105,13 @@ scraper_opts.add_argument(
 )
 
 
-output_opts = parser.add_argument_group("Output Options")
-output_opts.add_argument(
+OUTPUT_OPTIONS = PARSER.add_argument_group("Output Options")
+OUTPUT_OPTIONS.add_argument(
     "--debug",
     action="store_true",
     help="Provides more detailed runtime information.\n\n"
 )
-output_opts.add_argument(
+OUTPUT_OPTIONS.add_argument(
     "-o",
     "--output",
     metavar="DIR",
@@ -118,7 +119,7 @@ output_opts.add_argument(
     help="Indicates the path in which downloaded filess or\narchives should "
     "be placed. Defaults to \"./\".\n\n"
 )
-# output_opts.add_argument(
+# OUTPUT_OPTIONS.add_argument(
 #     "--output-format",
 #     metavar="FMT",
 #     default="ascii",

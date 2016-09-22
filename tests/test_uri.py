@@ -8,31 +8,28 @@ import hypothesis.strategies as st
 from chandere2.uri import (generate_uri, strip_target)
 
 
-class UriGenerationTest(unittest.TestCase):
+class GenerateUriTest(unittest.TestCase):
     @hypothesis.given(st.characters())
-    def test_create_url_for_board(self, board):
+    def test_create_url_with_board(self, board):
         uri = generate_uri(board, "threads")
         self.assertIn(board, uri)
         self.assertIn("threads.json", uri)
 
     @hypothesis.given(st.characters(), st.integers(min_value=0))
-    def test_create_url_for_thread(self, board, thread):
+    def test_create_url_with_thread(self, board, thread):
         uri = generate_uri(board, str(thread))
         self.assertIn(board + "/" + str(thread), uri)
         self.assertNotIn("threads.json", uri)
 
-    def test_fail_unknown_imageboard(self):
+    def test_fail_on_unknown_imageboard(self):
         self.assertIs(generate_uri("/g/", "", imageboard="krautchan"), None)
 
 
-class TargetStrippingTest(unittest.TestCase):
+class StripTargetTest(unittest.TestCase):
     @hypothesis.given(st.characters(blacklist_characters="/"))
-    def test_bare_board(self, target):
-        # Certain unicode characters, when encoded and decoded will
-        # become an empty string. The following is done to handle that.
-        expected_board = target.encode(errors="ignore").decode()
-        expected_board = urllib.parse.quote(expected_board.strip("/"),
-                                            safe="/ ", errors="ignore")
+    def test_strip_bare_board(self, target):
+        expected_board = urllib.parse.quote(target.strip("/"), safe="/ ",
+                                            errors="ignore")
 
         if not re.search(r"[^\s\/]", expected_board):
             expected_board = None
@@ -41,14 +38,13 @@ class TargetStrippingTest(unittest.TestCase):
 
     @hypothesis.given(st.characters(blacklist_characters="/"),
                       st.integers(min_value=0))
-    def test_board_with_thread(self, target_board, target_thread):
-        # Certain unicode characters, when encoded and decoded will
-        # become an empty string. The following is done to handle that.
+    def test_strip_board_with_thread(self, target_board, target_thread):
         expected_thread = str(target_thread)
-        expected_board = target_board.encode(errors="ignore").decode()
-        expected_board = urllib.parse.quote(expected_board.strip("/"),
+        expected_board = urllib.parse.quote(target_board.strip("/"),
                                             safe="/ ", errors="ignore")
 
+        # If the given target lacks a valid board initial but a thread
+        # is given, the subroutine will interpret the thread as a board.
         if not re.search(r"[^\s\/]", expected_board):
             expected_board = str(target_thread)
             expected_thread = "threads"
