@@ -4,7 +4,7 @@ import argparse
 import textwrap
 
 from chandere2 import (__doc__, __version__)
-from chandere2.uri import KNOWN_IMAGEBOARDS
+from chandere2.context import CONTEXTS
 
 
 class CustomHelp(argparse.HelpFormatter):
@@ -48,7 +48,7 @@ DOCS.add_argument(
 DOCS.add_argument(
     "--list-imageboards",
     action="version",
-    version="Available Imageboard Aliases: %s" % ", ".join(KNOWN_IMAGEBOARDS),
+    version="Available Imageboard Aliases: %s" % ", ".join(CONTEXTS),
     help="List known imageboard aliases and exit."
 )
 

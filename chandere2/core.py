@@ -6,6 +6,7 @@ import asyncio
 import sys
 
 from chandere2.cli import PARSER
+from chandere2.context import CONTEXTS
 from chandere2.output import Console
 from chandere2.uri import (generate_uri, strip_target)
 from chandere2.write import get_path
@@ -36,6 +37,8 @@ def main():
     if output_path is None:
         output.write_error("The given output path is not writeable.")
         sys.exit(1)
+
+    imageboard_context = CONTEXTS.get(args.imageboard)
 
     # loop = asyncio.get_event_loop()
 

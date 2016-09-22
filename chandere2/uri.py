@@ -3,21 +3,22 @@
 import re
 import urllib.parse
 
-KNOWN_IMAGEBOARDS = {"4chan": "a.4cdn.org",
-                     "8chan": "8ch.net",
-                     "lainchan": "lainchan.org"}
+from chandere2.context import CONTEXTS
 
 
 def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
     """Forms a valid URN for the given board, thread and imageboard.
     None is returned if the imageboard does not have a known URI.
     """
-    imageboard_url = KNOWN_IMAGEBOARDS.get(imageboard)
+    if imageboard in CONTEXTS:
+        imageboard_uri = CONTEXTS.get(imageboard).get("uri")
+    else:
+        imageboard_uri = None
 
-    if imageboard_url is None:
+    if imageboard_uri is None:
         uri = None
     else:
-        uri = "/".join((imageboard_url, board, thread + ".json"))
+        uri = "/".join((imageboard_uri, board, thread + ".json"))
 
     return uri
 
