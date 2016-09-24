@@ -8,6 +8,8 @@ def get_path(path: str, mode: str, output_format: str) -> str:
     sufficient permissions to write there and appending a stock filename
     if necessary. The finalized path is returned.
     """
+    parent_directory = os.path.dirname(os.path.abspath(path))
+
     if os.path.isdir(path):
         if not os.access(path, os.W_OK):
             path = None
@@ -19,10 +21,7 @@ def get_path(path: str, mode: str, output_format: str) -> str:
             path = os.path.join(path, filename)
 
     else:
-        parent_directory = os.path.dirname(os.path.abspath(path))
-        if not os.access(parent_directory, os.W_OK):
-            path = None
-        elif mode == "fd":
+        if not os.access(parent_directory, os.W_OK) or mode == "fd":
             path = None
 
     return path

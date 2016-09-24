@@ -25,7 +25,7 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
 
 def strip_target(target: str) -> tuple:
     """Strips the given target string for a board initial and, if found,
-    a thread number. A tuple containing the two will be returned, with 
+    a thread number. A tuple containing the two will be returned, with
     None as the thread if a thread number was not in the target string.
     """
     # The target should be quoted and stripped prior to further

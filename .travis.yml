@@ -4,4 +4,4 @@ python:
   - "3.5"
   - "3.5-dev"
 install: "pip install hypothesis mock"
-script: "python -m unittest -v tests.test_core tests.test_output tests.test_uri tests.test_write"
+script: "python -m unittest -v tests.test_core tests.test_connection tests.test_output tests.test_uri tests.test_write"

@@ -10,6 +10,8 @@ class GetPathTest(unittest.TestCase):
     def test_check_output_permissions(self):
         self.assertEqual(os.access("/", os.W_OK), bool(get_path("/", "", "")))
         self.assertEqual(os.access(".", os.W_OK), bool(get_path(".", "", "")))
+        self.assertEqual(os.access("/etc/hosts", os.W_OK),
+                         bool(get_path("/etc/hosts", "", "")))
 
     # The following tests, however, assume that the CWD is writeable.
     def test_directory_for_file_downloading(self):

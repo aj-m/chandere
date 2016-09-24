@@ -42,7 +42,8 @@ DOCS.add_argument(
     "-v",
     "--version",
     action="version",
-    version="Chandere2, version %s" % __version__,
+    version="Chandere2 Version %s\n" % __version__ + "Developed by Jakob, "
+    "released under the GNU GPLv3.\n",
     help="Display the currently installed version and exit."
 )
 DOCS.add_argument(

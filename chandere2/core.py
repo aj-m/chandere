@@ -6,6 +6,7 @@ import asyncio
 import sys
 
 from chandere2.cli import PARSER
+from chandere2.connection import test_connection
 from chandere2.context import CONTEXTS
 from chandere2.output import Console
 from chandere2.uri import (generate_uri, strip_target)
@@ -16,6 +17,8 @@ def main():
     """Primary entry-point to Chandere2."""
     args = PARSER.parse_args()
     output = Console(debug=args.debug)
+
+    imageboard_context = CONTEXTS.get(args.imageboard)
 
 
     target_uris = {}
@@ -32,25 +35,25 @@ def main():
         output.write_error("No valid targets provided.")
         sys.exit(1)
 
+
     output_path = get_path(args.output, args.mode, args.output_format)
 
     if output_path is None:
         output.write_error("The given output path is not writeable.")
         sys.exit(1)
 
-    imageboard_context = CONTEXTS.get(args.imageboard)
 
-    # loop = asyncio.get_event_loop()
+    loop = asyncio.get_event_loop()
 
-    # try:
-    #     if args.mode is None:
-    #         target_operation = test_connection(target_uris, args.ssl, output)
-    #         loop.run_until_complete(target_operation)
+    try:
+        if args.mode is None:
+            target_operation = test_connection(target_uris, args.ssl, output)
+            loop.run_until_complete(target_operation)
 
-    #     else:
-    #         pipeline = pipeline_to_output(args.mode, args.output, scrape)
-    #         loop.run_until_complete(pipeline)
-    # except KeyboardInterrupt:
-    #     output.write("Quitting...")
-    # finally:
-    #     loop.close()
+        # else:
+        #     pipeline = pipeline_to_output(args.mode, args.output, scrape)
+        #     loop.run_until_complete(pipeline)
+    except KeyboardInterrupt:
+        output.write("Quitting...")
+    finally:
+        loop.close()
