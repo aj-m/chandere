@@ -26,33 +26,34 @@ async def test_connection(target_uris: dict, use_ssl: bool, output):
                     output.write_error("FAILED: %s with %d." % (uri, status))
 
 
-## TODO: Test 403 and 304 handling. <jakob@memeware.net>
-async def enumerate_uris(target_uris: dict, use_ssl: bool, output):
-    """Tries to fetch the content at the specified URI, yielding the
-    JSON response if successful. If the server returns a status of 404
-    or 403, the URI is removed from the target list. Also handles the
-    last-modified client header to limit pointless network load.
+## TODO: Rewrite tests. <jakob@memeware.net>
+async def fetch_uri(uri: str, last_load: str, use_ssl: bool, output) -> tuple:
+    """Attempts to fetch the content at the specified URI, returning a
+    tuple containing the parsed JSON response, a boolean representing
+    whether or not an anomalous HTTP response code was received, and the
+    last-modified response header.
     """
-    failed_uris = []
     prefix = "https://" if use_ssl else "http://"
 
     async with aiohttp.ClientSession() as session:
-        for uri in target_uris:
-            last_modified = target_uris[uri][2]
-            headers = dict({"last-modified": last_modified}, **HEADERS)
+        headers = dict({"last-modified": last_load}, **HEADERS)
 
-            async with session.get(prefix + uri, headers=headers) as response:
-                if response.status == 200:
-                    target_uris[uri][2] = response.headers.get("last-modified")
-                    return await response.json()
-                elif response.status == 404:
-                    output.write_error("%s does not exist." % uri)
-                    failed_uris.append(uri)
-                elif response.status == 403:
-                    output.write_error("Servers are blocking web scrapers.")
-                    failed_uris.append(uri)
-                elif response.status == 304:
-                    output.write_debug("Page has not updated since last load.")
+        async with session.get(prefix + uri, headers=headers) as response:
+            if response.status == 200:
+                content = await response.json()
+                error = False
+                last_load = response.headers.get("last-modified")
+            elif response.status == 404:
+                output.write_error("%s does not exist." % uri)
+                content = None
+                error = True
+            elif response.status == 403:
+                output.write_error("Servers are blocking web scrapers.")
+                content = None
+                error = True
+            elif response.status == 304:
+                output.write_debug("Page has not updated since last load.")
+                content = None
+                error = False
 
-        for uri in failed_uris:
-            del target_uris[uri]
+        return (content, error, last_load)
