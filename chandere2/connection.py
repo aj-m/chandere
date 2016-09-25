@@ -1,6 +1,7 @@
 """Module for handling connections with the imageboard."""
 
 import asyncio
+import os.path
 
 import aiohttp
 
@@ -57,3 +58,20 @@ async def fetch_uri(uri: str, last_load: str, use_ssl: bool, output) -> tuple:
                 error = False
 
         return (content, error, last_load)
+
+
+async def download_file(uri: str, path: str, name: str, use_ssl: bool):
+    """Tries to get the binary data at the given URI, copying it into
+    the given output path. If a file already exists at the given output
+    path, "(Copy)" will be prepended to the filename.
+    """
+    prefix = "https://" if use_ssl else "http://"
+
+    while os.path.exists(os.path.join(path, name)):
+        name = "(Copy) " + name
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(uri, headers=HEADERS) as response:
+            if response.status == 200:
+                with open(os.path.join(path, name), "wb+") as output_file:
+                    output_file.write(await response.read())

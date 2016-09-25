@@ -1,9 +1,11 @@
 # Tests assume that a connection to 4chan can be made.
 
 import asyncio
+import hashlib
+import os
 import unittest
 
-from chandere2.connection import (fetch_uri, test_connection)
+from chandere2.connection import (download_file, fetch_uri, test_connection)
 from chandere2.output import Console
 
 from tests.dummy_objects import FakeOutput
@@ -70,3 +72,42 @@ class FetchUriTest(unittest.TestCase):
 
         self.loop.run_until_complete(check_return_value())
         self.assertIn("not exist", self.fake_stderr.last_received)
+
+
+class DownloadFileTest(unittest.TestCase):
+    def setUp(self):
+        self.loop = asyncio.get_event_loop()
+    
+    def test_successful_image_download(self):
+        target_uri = "https://wiki.installgentoo.com/images/a/a8/GNU.png"
+        target_operation = download_file(target_uri, ".", "gnu.png", False)
+        self.loop.run_until_complete(target_operation)
+
+        self.assertTrue(os.path.exists(os.path.join(".", "gnu.png")))
+
+        with open(os.path.join(".", "gnu.png"), "rb") as image_file:
+            md5_sum = hashlib.md5(image_file.read()).hexdigest()
+        self.assertEqual(md5_sum, "0ddcc288c7d5518d8308c9adf6218fc5")
+
+        os.remove(os.path.join(".", "gnu.png"))
+
+    def test_failed_image_download(self):
+        target_uri = "https://wiki.installgentoo.com/images/a/a8/GNU.gif"
+        target_operation = download_file(target_uri, ".", "gnu.gif", False)
+        self.loop.run_until_complete(target_operation)
+
+        self.assertFalse(os.path.exists(os.path.join(".", "gnu.gif")))
+
+    def test_prepend_copy(self):
+        target_uri = "https://wiki.installgentoo.com/images/a/a8/GNU.png"
+        target_operation = download_file(target_uri, ".", "gnu.png", False)
+        self.loop.run_until_complete(target_operation)
+
+        target_operation = download_file(target_uri, ".", "gnu.png", False)
+        self.loop.run_until_complete(target_operation)
+
+        self.assertTrue(os.path.exists(os.path.join(".", "gnu.png")))
+        self.assertTrue(os.path.exists(os.path.join(".", "(Copy) gnu.png")))
+
+        os.remove(os.path.join(".", "gnu.png"))
+        os.remove(os.path.join(".", "(Copy) gnu.png"))

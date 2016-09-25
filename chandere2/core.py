@@ -21,7 +21,6 @@ def main():
 
     imageboard_context = CONTEXTS.get(args.imageboard)
 
-
     target_uris = {}
 
     for target in args.targets:
@@ -43,7 +42,6 @@ def main():
         output.write_error("The given output path is not writeable.")
         sys.exit(1)
 
-
     loop = asyncio.get_event_loop()
 
     try:
@@ -52,9 +50,9 @@ def main():
             loop.run_until_complete(target_operation)
 
         ## Unfinished.
-        else:
-            scrape = scrape_targets(target_uris, args.ssl, output)
-            loop.run_until_complete(scrape)
+        # else:
+        #     scrape = scrape_targets(target_uris, args.ssl, output)
+        #     loop.run_until_complete(scrape)
     except KeyboardInterrupt:
         output.write("Quitting...")
     finally:
