@@ -9,7 +9,7 @@ from chandere2.cli import PARSER
 from chandere2.connection import test_connection
 from chandere2.context import CONTEXTS
 from chandere2.output import Console
-from chandere2.scrape import scrape_targets
+from chandere2.scrape import (poll_targets, scrape_posts)
 from chandere2.uri import (generate_uri, strip_target)
 from chandere2.write import get_path
 
@@ -49,10 +49,16 @@ def main():
             target_operation = test_connection(target_uris, args.ssl, output)
             loop.run_until_complete(target_operation)
 
-        ## Unfinished.
-        # else:
-        #     scrape = scrape_targets(target_uris, args.ssl, output)
-        #     loop.run_until_complete(scrape)
+        else:
+            posts_queue = asyncio.Queue()
+            write_queue = asyncio.Queue()
+
+            poll = poll_targets(target_uris, args.ssl, posts_queue, output)
+            scrape = scrape_posts(target_uris, args.mode, posts_queue,
+                                  write_queue, output)
+
+            loop.run_until_complete(poll)
+            loop.run_until_complete(scrape)
     except KeyboardInterrupt:
         output.write("Quitting...")
     finally:
