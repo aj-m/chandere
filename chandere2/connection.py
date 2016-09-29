@@ -27,7 +27,6 @@ async def test_connection(target_uris: dict, use_ssl: bool, output):
                     output.write_error("FAILED: %s with %d." % (uri, status))
 
 
-## TODO: Rewrite tests. <jakob@memeware.net>
 async def fetch_uri(uri: str, last_load: str, use_ssl: bool, output) -> tuple:
     """Attempts to fetch the content at the specified URI, returning a
     tuple containing the parsed JSON response, a boolean representing

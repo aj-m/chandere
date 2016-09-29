@@ -9,7 +9,7 @@ from chandere2.cli import PARSER
 from chandere2.connection import test_connection
 from chandere2.context import CONTEXTS
 from chandere2.output import Console
-from chandere2.scrape import (poll_targets, scrape_posts)
+from chandere2.scrape import (get_threads, poll_targets)
 from chandere2.uri import (generate_uri, strip_target)
 from chandere2.write import get_path
 
@@ -27,7 +27,7 @@ def main():
         board, thread = strip_target(target)
         if board is not None:
             uri = generate_uri(board, thread, args.imageboard)
-            target_uris[uri] = [board, bool(thread), ""]
+            target_uris[uri] = [board, thread != "threads", ""]
         else:
             output.write_error("Invalid target: %s" % target)
 
@@ -50,15 +50,27 @@ def main():
             loop.run_until_complete(target_operation)
 
         else:
-            posts_queue = asyncio.Queue()
+            thread_listing_queue = asyncio.Queue()
+            post_queue = asyncio.Queue()
+            filtered_posts_queue = asyncio.Queue()
             write_queue = asyncio.Queue()
 
-            poll = poll_targets(target_uris, args.ssl, posts_queue, output)
-            scrape = scrape_posts(target_uris, args.mode, posts_queue,
-                                  write_queue, output)
+            filters = [] ## TODO
+            poll_operation = poll_targets(target_uris, args.ssl, post_queue,
+                                          thread_listing_queue, args.run_once,
+                                          output)
 
-            loop.run_until_complete(poll)
-            loop.run_until_complete(scrape)
+            thread_operation = get_threads(target_uris, thread_listing_queue,
+                                           args.imageboard, output)
+
+            # filter_operation = filter_posts(filters, posts_queue,
+            #                                 filtered_queue, output)
+            # scrape_operation = scrape_posts(target_uris, args.mode,
+            #                                 args.imageboard, posts_queue,
+            #                                 write_queue, output)
+
+            loop.run_until_complete(poll_operation)
+            loop.run_until_complete(thread_operation)
     except KeyboardInterrupt:
         output.write("Quitting...")
     finally:
