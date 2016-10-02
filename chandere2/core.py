@@ -3,23 +3,14 @@ arguments and handles the asynchronous event loop.
 """
 
 import asyncio
-import functool
 import sys
 
 from chandere2.cli import PARSER
-from chandere2.connection import test_connection
+from chandere2.connection import (fetch_uri, test_connection)
+from chandere2.handle_targets import main_loop
 from chandere2.output import Console
-from chandere2.handle_targets import scrape_target
 from chandere2.validate_input import (generate_uri, get_path,
                                       strip_target)
-
-
-async def main_loop(target_uris: dict, args, output):
-    """[Document me!]"""
-    target_operation = functools.partial(scrape_target, target_uris,
-                                         args.ssl, output)
-
-    operations = [target_operation(uri) for uri in target_uris]
 
 
 def main():
@@ -34,7 +25,7 @@ def main():
         board, thread = strip_target(target)
         if board is not None:
             uri = generate_uri(board, thread, args.imageboard)
-            target_uris[uri] = [board, thread, ""]
+            target_uris[uri] = [board, bool(thread), ""]
         else:
             output.write_error("Invalid target: %s" % target)
 
@@ -53,6 +44,8 @@ def main():
 
     try:
         loop = asyncio.get_event_loop()
+        ## I think this is the right idea...
+        # loop.add_signal_handler(signal.SIGINT, functools.partial(output.write, "Quitting..."))
 
         if args.mode is None:
             target_operation = test_connection(target_uris, args.ssl, output)
@@ -60,7 +53,7 @@ def main():
         else:
             target_operation = main_loop(target_uris, args, output)
             loop.run_until_complete(target_operation)
-    except KeyboardInterrupt:
-        output.write("Quitting...")
+    # except KeyboardInterrupt:
+    #     output.write("Quitting...")
     finally:
         loop.close()

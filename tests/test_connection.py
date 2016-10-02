@@ -53,10 +53,11 @@ class FetchUriTest(unittest.TestCase):
                                      False, self.fake_output)
 
         async def check_return_value():
-            content, error, last_load = await target_operation
+            content, error, last_load, uri = await target_operation
             self.assertIsNotNone(content)
             self.assertFalse(error)
             self.assertTrue(last_load)
+            self.assertEqual(uri, "a.4cdn.org/g/threads.json")
 
         self.loop.run_until_complete(check_return_value())
 
@@ -65,10 +66,11 @@ class FetchUriTest(unittest.TestCase):
                                      False, self.fake_output)
 
         async def check_return_value():
-            content, error, last_load = await target_operation
+            content, error, last_load, uri = await target_operation
             self.assertIsNone(content)
             self.assertTrue(error)
             self.assertFalse(last_load)
+            self.assertEqual(uri, "a.4cdn.org/z/threads.json")
 
         self.loop.run_until_complete(check_return_value())
         self.assertIn("not exist", self.fake_stderr.last_received)

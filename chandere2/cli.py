@@ -102,7 +102,13 @@ SCRAPER_OPTIONS.add_argument(
     help="Uses TLS/SSL encryption when making connections with "
     "the\nimageboard.\n\n"
 )
-
+SCRAPER_OPTIONS.add_argument(
+    "--nocap",
+    action="store_true",
+    help="Will not attempt to limit the number of concurrent\nconnections. "
+    "This can generate unreasonable amounts of\ntraffic and should only be "
+    "used if you know what you're\ndoing."
+)
 
 OUTPUT_OPTIONS = PARSER.add_argument_group("Output Options")
 OUTPUT_OPTIONS.add_argument(

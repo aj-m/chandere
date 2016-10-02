@@ -30,8 +30,8 @@ async def test_connection(target_uris: dict, use_ssl: bool, output):
 async def fetch_uri(uri: str, last_load: str, use_ssl: bool, output) -> tuple:
     """Attempts to fetch the content at the specified URI, returning a
     tuple containing the parsed JSON response, a boolean representing
-    whether or not an anomalous HTTP response code was received, and the
-    last-modified response header.
+    whether or not an anomalous HTTP response code was received, the
+    last-modified response header, and the URI connected to.
     """
     prefix = "https://" if use_ssl else "http://"
 
@@ -56,7 +56,7 @@ async def fetch_uri(uri: str, last_load: str, use_ssl: bool, output) -> tuple:
                 content = None
                 error = False
 
-        return (content, error, last_load)
+    return (content, error, last_load, uri)
 
 
 async def download_file(uri: str, path: str, name: str, use_ssl: bool):
