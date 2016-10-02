@@ -1,6 +1,9 @@
-"""Contextual information for specific imageboards."""
+"""General scraping information related to specific imageboards."""
 
 
-CONTEXTS = {"4chan": {"uri": "a.4cdn.org"},
-            "8chan": {"uri": "8ch.net"},
-            "lainchan": {"uri": "lainchan.org"}}
+CONTEXTS = {"4chan": {"uri": "a.4cdn.org",
+                      "delimiter": "thread"},
+            "8chan": {"uri": "8ch.net",
+                      "delimiter": "res"},
+            "lainchan": {"uri": "lainchan.org",
+                         "delimiter": "res"}}

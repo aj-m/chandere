@@ -26,7 +26,7 @@ class CustomHelp(argparse.HelpFormatter):
 PARSER = argparse.ArgumentParser(
     add_help=False,
     formatter_class=CustomHelp,
-    usage="%(prog)s (TARGETS) [-i CHAN] [OPTIONS]",
+    usage="%(prog)s (TARGETS) [-i ALIAS] [OPTIONS]",
     description=textwrap.fill(__doc__.strip(), width=80)
 )
 
@@ -54,33 +54,14 @@ DOCS.add_argument(
 )
 
 
-SCRAPER_OPTIONS = PARSER.add_argument_group("Scraper Options")
-MODAL_OPTIONS = SCRAPER_OPTIONS.add_mutually_exclusive_group()
-MODAL_OPTIONS.add_argument(
-    "-d",
-    "--download",
-    action="store_const",
-    const="fd",
-    dest="mode",
-    help="Download every file in a thread, or crawl for every\nfile on "
-    "a board if a thread is not specified.\n\n"
-)
-MODAL_OPTIONS.add_argument(
-    "-a",
-    "--archive",
-    action="store_const",
-    const="ar",
-    dest="mode",
-    help="Archive every post in a thread to plaintext, or crawl\nfor "
-    "every post on a board if a thread is not specified.\n\n"
-)
+SCRAPER_OPTIONS = PARSER.add_argument_group("Scraping Options")
 SCRAPER_OPTIONS.add_argument(
     "targets",
     metavar="TARGETS",
     nargs="+",
     help="Combination of a board and optionally a thread to scrape\nfrom. (E.g"
-    ".\"/g/51971506\"). If a thread is not given,\nChandere2 will attempt to "
-    "scrape the entire board.\nMultiple board/thread combinations can be "
+    ".\"/g/51971506\"). If a thread is not supplied,\nChandere2 will attempt "
+    "to scrape the entire board.\nMultiple board/thread combinations can be "
     "given.\n\n"
 )
 SCRAPER_OPTIONS.add_argument(
@@ -90,6 +71,23 @@ SCRAPER_OPTIONS.add_argument(
     default="4chan",
     help="Used to designate the imageboard to be scraped from.\nAvailable "
     "aliases can be listed with --list-imageboards.\n\n"
+)
+MODAL_OPTIONS = SCRAPER_OPTIONS.add_mutually_exclusive_group()
+MODAL_OPTIONS.add_argument(
+    "-d",
+    "--download",
+    action="store_const",
+    const="fd",
+    dest="mode",
+    help="Crawl for and download every file in the given targets.\n\n"
+)
+MODAL_OPTIONS.add_argument(
+    "-a",
+    "--archive",
+    action="store_const",
+    const="ar",
+    dest="mode",
+    help="Archive every post in the given targets.\n\n"
 )
 SCRAPER_OPTIONS.add_argument(
     "--continuous",
@@ -101,8 +99,8 @@ SCRAPER_OPTIONS.add_argument(
 SCRAPER_OPTIONS.add_argument(
     "--ssl",
     action="store_true",
-    help="Uses HTTPS if it is available.\n\n"
-    # Redoc this
+    help="Uses TLS/SSL encryption when making connections with "
+    "the\nimageboard.\n\n"
 )
 
 
@@ -124,6 +122,6 @@ OUTPUT_OPTIONS.add_argument(
     "--output-format",
     metavar="FMT",
     default="ascii",
-    help="Specify the format that output should be put into."
-    # Redoc this.
+    help="Specify the format that output should be put into. Can\nbe either "
+    "\"ascii\" or \"sqlite3\"."
 )
