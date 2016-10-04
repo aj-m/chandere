@@ -23,7 +23,7 @@ class GenerateUriTest(unittest.TestCase):
         self.assertNotIn("threads.json", uri)
 
     def test_fail_on_unknown_imageboard(self):
-        self.assertIs(generate_uri("/g/", "", imageboard="krautchan"), None)
+        self.assertIs(generate_uri("g", "", imageboard="krautchan"), None)
 
 
 class StripTargetTest(unittest.TestCase):

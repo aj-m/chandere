@@ -72,7 +72,7 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
         if thread is None:
             uri = "/".join((imageboard_uri, board, "threads" + ".json"))
         else:
-            uri = "/".join((imageboard_uri, board,
-                            delimiter, thread + ".json"))
+            uri = "/".join((imageboard_uri, board, delimiter,
+                            thread + ".json"))
 
     return uri

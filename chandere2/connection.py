@@ -1,6 +1,5 @@
 """Module for handling connections with the imageboard."""
 
-import asyncio
 import os.path
 
 import aiohttp
@@ -15,7 +14,7 @@ async def test_connection(target_uris: dict, use_ssl: bool, output):
     prefix = "https://" if use_ssl else "http://"
 
     async with aiohttp.ClientSession() as session:
-        for index, uri in enumerate(target_uris):
+        for uri in target_uris:
             async with session.get(prefix + uri, headers=HEADERS) as response:
                 if response.status == 200:
                     output.write("CONNECTED: %s" % uri)
@@ -70,7 +69,7 @@ async def download_file(uri: str, path: str, name: str, use_ssl: bool):
         name = "(Copy) " + name
 
     async with aiohttp.ClientSession() as session:
-        async with session.get(uri, headers=HEADERS) as response:
+        async with session.get(prefix + uri, headers=HEADERS) as response:
             if response.status == 200:
                 with open(os.path.join(path, name), "wb+") as output_file:
                     output_file.write(await response.read())

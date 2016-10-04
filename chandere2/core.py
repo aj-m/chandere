@@ -3,14 +3,23 @@ arguments and handles the asynchronous event loop.
 """
 
 import asyncio
+import signal
 import sys
 
 from chandere2.cli import PARSER
-from chandere2.connection import (fetch_uri, test_connection)
+from chandere2.connection import test_connection
 from chandere2.handle_targets import main_loop
 from chandere2.output import Console
-from chandere2.validate_input import (generate_uri, get_path,
-                                      strip_target)
+from chandere2.validate_input import (generate_uri, get_path, strip_target)
+
+
+## FIXME: Cleaner, but still raises ~ 6 exceptions. <jakob@memeware.net>
+def clean_up():
+    """General subroutine to safely clean up after a signal interrupt
+    has been received, cancelling all tasks in the event loop.
+    """
+    for task in asyncio.Task.all_tasks():
+        task.cancel()
 
 
 def main():
@@ -44,8 +53,7 @@ def main():
 
     try:
         loop = asyncio.get_event_loop()
-        ## I think this is the right idea...
-        # loop.add_signal_handler(signal.SIGINT, functools.partial(output.write, "Quitting..."))
+        loop.add_signal_handler(signal.SIGINT, clean_up)
 
         if args.mode is None:
             target_operation = test_connection(target_uris, args.ssl, output)
@@ -53,7 +61,5 @@ def main():
         else:
             target_operation = main_loop(target_uris, args, output)
             loop.run_until_complete(target_operation)
-    # except KeyboardInterrupt:
-    #     output.write("Quitting...")
     finally:
         loop.close()

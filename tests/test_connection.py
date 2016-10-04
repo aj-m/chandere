@@ -81,7 +81,7 @@ class DownloadFileTest(unittest.TestCase):
         self.loop = asyncio.get_event_loop()
     
     def test_successful_image_download(self):
-        target_uri = "https://wiki.installgentoo.com/images/a/a8/GNU.png"
+        target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
         target_operation = download_file(target_uri, ".", "gnu.png", False)
         self.loop.run_until_complete(target_operation)
 
@@ -94,14 +94,14 @@ class DownloadFileTest(unittest.TestCase):
         os.remove(os.path.join(".", "gnu.png"))
 
     def test_failed_image_download(self):
-        target_uri = "https://wiki.installgentoo.com/images/a/a8/GNU.gif"
+        target_uri = "wiki.installgentoo.com/images/a/a8/GNU.gif"
         target_operation = download_file(target_uri, ".", "gnu.gif", False)
         self.loop.run_until_complete(target_operation)
 
         self.assertFalse(os.path.exists(os.path.join(".", "gnu.gif")))
 
     def test_prepend_copy(self):
-        target_uri = "https://wiki.installgentoo.com/images/a/a8/GNU.png"
+        target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
         target_operation = download_file(target_uri, ".", "gnu.png", False)
         self.loop.run_until_complete(target_operation)
 
