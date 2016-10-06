@@ -1,4 +1,4 @@
-"""Module for continuously polling and scraping targets."""
+"""Module containing the processing loop and related subroutines."""
 
 import asyncio
 
@@ -45,19 +45,7 @@ def get_images(post: dict, imageboard: str) -> list:
     return images
 
 
-def scrape_post(post: dict, imageboard: str) -> tuple:
-    """Scrapes a post for any content that would be worth archiving,
-    returning a tuple containing the post ID, the UNIX timestamp, the
-    poster's name, the tripcode, the subject, the comment, and the
-    filename.
-    """
-    context = CONTEXTS.get(imageboard)
-    no, time, name, trip, sub, com, filename, ext = context.get("post_fields")
-
-    return (post.get(no), post.get(time), post.get(name), post.get(trip),
-            post.get(sub), post.get(com), post.get(filename) + post.get(ext))
-
-
+## TODO: Fix 8chan support. <jakob@memeware.net>
 def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     """Given a filename, a board, and an imageboard, returns a URI
     pointing to the image specified by the parameters.

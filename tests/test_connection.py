@@ -1,5 +1,7 @@
 # Tests assume that a connection to 4chan can be made.
 
+## TODO: Improve the test for download. <jakob@memeware.net>
+
 import asyncio
 import hashlib
 import os
