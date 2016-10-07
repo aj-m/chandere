@@ -10,13 +10,13 @@ from chandere2.validate_input import (generate_uri, get_path, strip_target)
 
 
 class GenerateUriTest(unittest.TestCase):
-    @hypothesis.given(st.characters())
+    @hypothesis.given(st.text())
     def test_create_url_with_board(self, board):
         uri = generate_uri(board, None)
         self.assertIn(board, uri)
         self.assertIn("threads.json", uri)
 
-    @hypothesis.given(st.characters(), st.integers(min_value=0))
+    @hypothesis.given(st.text(), st.integers(min_value=0))
     def test_create_url_with_thread(self, board, thread):
         uri = generate_uri(board, str(thread))
         self.assertIn("/".join((board, "thread", str(thread))), uri)

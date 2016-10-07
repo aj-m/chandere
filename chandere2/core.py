@@ -43,10 +43,11 @@ def main():
         sys.exit(1)
 
 
+    ## TODO: Rename to output_path?
     # Get the output path.
-    output_path = get_path(args.output, args.mode, args.output_format)
+    path = get_path(args.output, args.mode, args.output_format)
 
-    if output_path is None:
+    if path is None:
         output.write_error("The given output path is not valid.")
         sys.exit(1)
 
@@ -59,7 +60,7 @@ def main():
             target_operation = test_connection(target_uris, args.ssl, output)
             loop.run_until_complete(target_operation)
         else:
-            target_operation = main_loop(target_uris, args, output)
+            target_operation = main_loop(target_uris, path, args, output)
             loop.run_until_complete(target_operation)
     finally:
         loop.close()

@@ -2,6 +2,7 @@
 Short Term Proposals
 ====================
 * Add support for Infinity Next, specifically NextChan.
+* Add support for Endchan.
 
 
 ===================

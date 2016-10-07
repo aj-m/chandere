@@ -59,10 +59,12 @@ def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     return uri + "/" + filename
 
 
-async def main_loop(target_uris: dict, args, output):
-    """[Document me!]"""
+async def main_loop(target_uris: dict, path: str, args, output):
+    """Main scraping loop."""
     while True:
+        imageboard = args.imageboard
         operations = []
+
         if args.nocap:
             for uri in target_uris:
                 last_load = target_uris[uri][2]
@@ -75,11 +77,37 @@ async def main_loop(target_uris: dict, args, output):
                 wrapped = wrap_semaphore(target_operation, connection_cap)
                 operations.append(wrapped)
 
+
         for future in asyncio.as_completed(operations):
+            board, thread, _ = target_uris[uri]
             content, error, last_load, uri = await future
-            if not error:
-                target_uris[uri][2] = last_load
-            else:
+
+            if error:
                 del target_uris[uri]
+                continue
+
+            ## TODO: Separate into subroutines? <jakob@memeware.net>
+            if thread and args.mode == "fd":
+                ## TODO: Add support for contexts. <jakob@memeware.net>
+                for post in content.get("posts"):
+                    images = get_images(post, imageboard)
+                    for original_filename, server_filename in images:
+                        ## TODO: Clean up. <jakob@memeware.net>
+                        image_uri = get_image_uri(server_filename, board,
+                                                  imageboard)
+                        output.write("Downloading %s..." % original_filename)
+
+                        ## TODO: Clean up. <jakob@memeware.net>
+                        await download_file(image_uri, path, original_filename,
+                                            args.ssl)
+            elif thread and args.mode == "ar":
+                ## TODO: Add support for contexts. <jakob@memeware.net>
+                for post in content.get("posts"):
+                    pass
+            else:
+                for uri in get_threads(content, board, args.imageboard):
+                    target_uris[uri] = [board, True, ""]
+
+            target_uris[uri][2] = last_load
 
         break ##
