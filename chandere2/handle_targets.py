@@ -45,7 +45,6 @@ def get_images(post: dict, imageboard: str) -> list:
     return images
 
 
-## TODO: Fix 8chan support. <jakob@memeware.net>
 def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     """Given a filename, a board, and an imageboard, returns a URI
     pointing to the image specified by the parameters.
