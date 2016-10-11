@@ -8,19 +8,65 @@ import sys
 
 from chandere2.cli import PARSER
 from chandere2.connection import test_connection
-from chandere2.handle_targets import main_loop
 from chandere2.output import Console
+from chandere2.post import (get_images, get_image_uri, get_threads)
 from chandere2.validate_input import (generate_uri, get_path, strip_target)
 
+MAX_CONNECTIONS = 8
 
-## FIXME: Cleaner, but still raises ~ 6 exceptions. <jakob@memeware.net>
-def clean_up():
-    """General subroutine to safely clean up after a signal interrupt
-    has been received, cancelling all tasks in the event loop.
-    """
-    for task in asyncio.Task.all_tasks():
-        task.cancel()
 
+async def main_loop(target_uris: dict, path: str, args, output):
+    """Main scraping loop."""
+    while True:
+        imageboard = args.imageboard
+        operations = []
+
+        if args.nocap:
+            for uri in target_uris:
+                last_load = target_uris[uri][2]
+                operations.append(fetch_uri(uri, last_load, args.ssl, output))
+        else:
+            connection_cap = asyncio.Semaphore(MAX_CONNECTIONS)
+            for uri in target_uris:
+                last_load = target_uris[uri][2]
+                target_operation = fetch_uri(uri, last_load, args.ssl, output)
+                wrapped = wrap_semaphore(target_operation, connection_cap)
+                operations.append(wrapped)
+
+
+        for future in asyncio.as_completed(operations):
+            board, thread, _ = target_uris[uri]
+            content, error, last_load, uri = await future
+
+            if error:
+                del target_uris[uri]
+                continue
+
+            ## TODO: Separate into subroutines? <jakob@memeware.net>
+            if thread and args.mode == "fd":
+                ## TODO: Add support for contexts. <jakob@memeware.net>
+                for post in content.get("posts"):
+                    images = get_images(post, imageboard)
+                    for original_filename, server_filename in images:
+                        ## TODO: Clean up. <jakob@memeware.net>
+                        image_uri = get_image_uri(server_filename, board,
+                                                  imageboard)
+                        output.write("Downloading %s..." % original_filename)
+
+                        ## TODO: Clean up. <jakob@memeware.net>
+                        await download_file(image_uri, path, original_filename,
+                                            args.ssl)
+            elif thread and args.mode == "ar":
+                ## TODO: Add support for contexts. <jakob@memeware.net>
+                for post in content.get("posts"):
+                    pass
+            else:
+                for uri in get_threads(content, board, args.imageboard):
+                    target_uris[uri] = [board, True, ""]
+
+            target_uris[uri][2] = last_load
+
+        break ##
 
 def main():
     """Primary entry-point to Chandere2."""
@@ -64,3 +110,21 @@ def main():
             loop.run_until_complete(target_operation)
     finally:
         loop.close()
+
+
+## FIXME: Cleaner, but still raises ~ 6 exceptions. <jakob@memeware.net>
+def clean_up():
+    """General subroutine to safely clean up after a signal interrupt
+    has been received, cancelling all tasks in the event loop.
+    """
+    for task in asyncio.Task.all_tasks():
+        task.cancel()
+
+
+## TODO: Move helper function?
+async def wrap_semaphore(coroutine, semaphore):
+    """Wraps the execution of a given coroutine into the given
+    semaphore, returning whatever the coroutine returns.
+    """
+    async with semaphore:
+        return await coroutine

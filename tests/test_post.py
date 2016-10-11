@@ -1,11 +1,12 @@
 import asyncio
+import time
 import unittest
 
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere2.handle_targets import (get_images, get_image_uri,
-                                      get_threads, wrap_semaphore)
+from chandere2.post import (ascii_format_post, get_images,
+                            get_image_uri, get_threads)
 from chandere2.validate_input import generate_uri
 
 
@@ -25,20 +26,6 @@ class GetImageURITest(unittest.TestCase):
         # Hardcoded test for Lainchan.
         self.assertEqual(get_image_uri(filename, board, "lainchan"),
                          "/".join(("lainchan.org", board, "src", filename)))
-
-
-## TODO: Does not test for the existence of a semaphore. <jakob@memeware.net>
-class WrapSemaphoreTest(unittest.TestCase):
-    def setUp(self):
-        self.loop = asyncio.get_event_loop()
-
-    def test_wrap_semaphore(self):
-        async def dummy_coroutine():
-            return True
-
-        semaphore = asyncio.Semaphore(1)
-        coroutine = wrap_semaphore(dummy_coroutine(), semaphore)
-        self.assertTrue(self.loop.run_until_complete(coroutine))
 
 
 ## TODO: Test for contextual scraping. <jakob@memeware.net>
@@ -77,3 +64,30 @@ class GetImagesTest(unittest.TestCase):
         content = {"filename": "RMS", "ext": ".png", "tim": "1462739442146"}
         self.assertEqual(get_images(content, "lainchan"),
                          [("RMS.png", "1462739442146.png")])
+
+    ## TODO: Write this. <jakob@memeware.net>
+    def test_get_multiple_images(self):
+        pass
+
+
+class AsciiFormatPostTest(unittest.TestCase):
+    ## TODO: Clean up. <jakob@memeware.net>
+    @hypothesis.given(st.integers(),
+                      st.integers(min_value=0, max_value=4294967295),
+                      st.text(), st.text(), st.text(), st.text(), st.text(),
+                      st.text())
+    def test_format_post(self, no, date, name, trip, sub, com, filename, ext):
+        # Hardcoded test for 4chan, 8chan, and Lainchan.
+        post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
+                "com": com, "filename": filename, "ext": ext}
+        formatted = ascii_format_post(post, "4chan")
+        self.assertIn("Post: %s" % no, formatted)
+        self.assertIn(time.ctime(date), formatted)
+        if name:
+            self.assertIn(name, formatted)
+        if trip:
+            self.assertIn("!%s" % trip, formatted)
+        if sub:
+            self.assertIn("\"%s\"" % sub, formatted)
+        if filename and ext:
+            self.assertIn(".".join((filename, ext)), formatted)

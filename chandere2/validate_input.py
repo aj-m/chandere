@@ -1,3 +1,5 @@
+## TODO: Rename to "validate.py?"
+
 """Module to validate and parse input from the command-line."""
 
 import os
