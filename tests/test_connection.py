@@ -1,7 +1,5 @@
 # Tests assume that a connection to 4chan can be made.
 
-## TODO: Improve the test for download. <jakob@memeware.net>
-
 import asyncio
 import hashlib
 import os
@@ -78,6 +76,7 @@ class FetchUriTest(unittest.TestCase):
         self.assertIn("not exist", self.fake_stderr.last_received)
 
 
+## FIXME: Poor test <jakob@memeware.net>
 class DownloadFileTest(unittest.TestCase):
     def setUp(self):
         self.loop = asyncio.get_event_loop()
@@ -115,3 +114,17 @@ class DownloadFileTest(unittest.TestCase):
 
         os.remove(os.path.join(".", "gnu.png"))
         os.remove(os.path.join(".", "(Copy) gnu.png"))
+
+
+## FIXME: Doesn't test for semaphore's presence. <jakob@memeware.net>
+class WrapSemaphoreTest(unittest.TestCase):
+    def setUp(self):
+        self.loop = asyncio.get_event_loop()
+
+    def test_wrap_semaphore(self):
+        async def dummy_coroutine():
+            return True
+
+        semaphore = asyncio.Semaphore(1)
+        coroutine = wrap_semaphore(dummy_coroutine(), semaphore)
+        self.assertTrue(self.loop.run_until_complete(coroutine))

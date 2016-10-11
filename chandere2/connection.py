@@ -73,3 +73,11 @@ async def download_file(uri: str, path: str, name: str, use_ssl: bool):
             if response.status == 200:
                 with open(os.path.join(path, name), "wb+") as output_file:
                     output_file.write(await response.read())
+
+
+async def wrap_semaphore(coroutine, semaphore):
+    """Helper function that wraps the execution of a given coroutine
+    into a semaphore, returning the result of said coroutine.
+    """
+    async with semaphore:
+        return await coroutine

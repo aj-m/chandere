@@ -7,7 +7,7 @@ import time
 
 from chandere2.connection import (download_file, fetch_uri)
 from chandere2.context import CONTEXTS
-from chandere2.validate_input import generate_uri
+from chandere2.validate import generate_uri
 
 SUBSTITUTIONS = ((r'<p class="body-line empty "><\/p>', "\n\n"),
                  (r'<\/p>(?=<p class="body-line ltr ">)', "\n"),
