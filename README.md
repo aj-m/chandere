@@ -24,46 +24,46 @@ Benchmarks
 Chandere1.0.0 Downloading All Images in a /tech/ Thread (No Concurrent Connection Cap)
 --------------------------------------------------------------------------------------
 
-[jakob@Epsilon Chandere2]$ time chandere /tech/643887 -c 8chan -o /tmp -d
-...
-[Consumer Thread] INFO: Waiting for downloads to finish...
-[MainThread] INFO: Task completed.
-
-real         0m10.451s
-user         0m0.477s
-sys          0m0.017s
+        [jakob@Epsilon Chandere2]$ time chandere /tech/643887 -c 8chan -o /tmp -d
+        ...
+        [Consumer Thread] INFO: Waiting for downloads to finish...
+        [MainThread] INFO: Task completed.
+        
+        real         0m10.451s
+        user         0m0.477s
+        sys          0m0.017s
 
 
 Chandere2.1.0.dev1 Downloading All Images in a /tech/ Thread (Max 8 Concurrent Connections)
 -------------------------------------------------------------------------------------------
 
-[jakob@Epsilon Chandere2]$ time python -m chandere2 /tech/643887 -i 8chan -o /tmp -d
-...
-
-real        0m4.619s
-user        0m0.323s
-sys         0m0.020s
+        [jakob@Epsilon Chandere2]$ time python -m chandere2 /tech/643887 -i 8chan -o /tmp -d
+        ...
+        
+        real        0m4.619s
+        user        0m0.323s
+        sys         0m0.020s
 
 
 Chandere1.0.0 Archiving All of /g/ (No Concurrent Connection Cap)
 -----------------------------------------------------------------
 
-[jakob@Epsilon Chandere2]$ time chandere /g/ -a
-[MainThread] INFO: Task completed.
-
-real         1m10.907s
-user         0m51.073s
-sys          0m16.707s
+        [jakob@Epsilon Chandere2]$ time chandere /g/ -a
+        [MainThread] INFO: Task completed.
+        
+        real         1m10.907s
+        user         0m51.073s
+        sys          0m16.707s
 
 
 Chandere2.1.0.dev1 Archiving All of /g/ (Max 8 Concurrent Connections)
 ----------------------------------------------------------------------
 
-[jakob@Epsilon Chandere2]$ time python -m chandere2 /g/ -a
-
-real   1m6.648s
-user   0m48.730s
-sys    0m16.193s
+        [jakob@Epsilon Chandere2]$ time python -m chandere2 /g/ -a
+        
+        real   1m6.648s
+        user   0m48.730s
+        sys    0m16.193s
 
 
 Installation
