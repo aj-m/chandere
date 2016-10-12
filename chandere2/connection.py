@@ -77,7 +77,7 @@ async def download_file(uri: str, path: str, name: str, use_ssl: bool):
 
 async def wrap_semaphore(coroutine, semaphore):
     """Helper function that wraps the execution of a given coroutine
-    into a semaphore, returning the result of said coroutine.
+    into a semaphore and returns the result of the coroutine.
     """
     async with semaphore:
         return await coroutine

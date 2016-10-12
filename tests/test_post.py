@@ -1,13 +1,12 @@
-import asyncio
 import time
 import unittest
 
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere2.post import (ascii_format_post, get_images,
+from chandere2.post import (ascii_format_post, find_files, get_images,
                             get_image_uri, get_threads)
-from chandere2.validate_input import generate_uri
+from chandere2.validate import generate_uri
 
 
 class GetImageURITest(unittest.TestCase):
@@ -48,26 +47,76 @@ class GetThreadsTest(unittest.TestCase):
 
 
 ## TODO: Test for contextual scraping. <jakob@memeware.net>
+## TODO: Write more property-based tests. <jakob@memeware.net>
 class GetImagesTest(unittest.TestCase):
     def test_get_images(self):
+        content = {"filename": "RMS", "ext": ".png", "tim": "1462739442146"}
+        parsed = [("RMS.png", "1462739442146.png")]
+
         # Hardcoded test for 4chan.
-        content = {"filename": "RMS", "ext": ".png", "tim": "1462739442146"}
-        self.assertEqual(get_images(content, "4chan"),
-                         [("RMS.png", "1462739442146.png")])
-        
+        self.assertEqual(get_images(content, "4chan"), parsed)
+
         # Hardcoded test for 8chan.
-        content = {"filename": "RMS", "ext": ".png", "tim": "1462739442146"}
-        self.assertEqual(get_images(content, "8chan"),
-                         [("RMS.png", "1462739442146.png")])
+        self.assertEqual(get_images(content, "8chan"), parsed)
 
         # Hardcoded test for Lainchan.
-        content = {"filename": "RMS", "ext": ".png", "tim": "1462739442146"}
-        self.assertEqual(get_images(content, "lainchan"),
-                         [("RMS.png", "1462739442146.png")])
+        self.assertEqual(get_images(content, "lainchan"), parsed)
 
-    ## TODO: Write this. <jakob@memeware.net>
     def test_get_multiple_images(self):
-        pass
+        content = {
+            "filename": "RMS",
+            "ext": ".png",
+            "tim": "1462739442146",
+            "extra_files": [{"filename": "RMS", "ext": ".png",
+                             "tim": "1462739442147"}]
+        }
+        parsed = [("RMS.png", "1462739442146.png"),
+                  ("RMS.png", "1462739442147.png")]
+
+        # Hardcoded test for 4chan.
+        self.assertEqual(get_images(content, "4chan"), parsed)
+
+        # Hardcoded test for 8chan.
+        self.assertEqual(get_images(content, "8chan"), parsed)
+
+        # Hardcoded test for Lainchan.
+        self.assertEqual(get_images(content, "lainchan"), parsed)
+
+
+class FindFilesTest(unittest.TestCase):
+    @hypothesis.given(st.text(), st.text(), st.text(), st.integers())
+    def test_find_files(self, name, extension, board, tim):
+        content = {"posts": [{"filename": name, "ext": extension, "tim": tim}]}
+
+        # Hardcoded test for 4chan.
+        found = list(get_images(content.get("posts")[0], "4chan"))
+        if found:
+            original_filename, server_filename = found[0]
+            uri = get_image_uri(server_filename, board, "4chan")
+            parsed = [(uri, original_filename)]
+        else:
+            parsed = []
+        self.assertEqual(list(find_files(content, board, "4chan")), parsed)
+
+        # Hardcoded test for 8chan.
+        found = list(get_images(content.get("posts")[0], "4chan"))
+        if found:
+            original_filename, server_filename = found[0]
+            uri = get_image_uri(server_filename, board, "8chan")
+            parsed = [(uri, original_filename)]
+        else:
+            parsed = []
+        self.assertEqual(list(find_files(content, board, "8chan")), parsed)
+
+        # Hardcoded test for Lainchan.
+        found = list(get_images(content.get("posts")[0], "4chan"))
+        if found:
+            original_filename, server_filename = found[0]
+            uri = get_image_uri(server_filename, board, "lainchan")
+            parsed = [(uri, original_filename)]
+        else:
+            parsed = []
+        self.assertEqual(list(find_files(content, board, "lainchan")), parsed)
 
 
 class AsciiFormatPostTest(unittest.TestCase):
@@ -77,10 +126,12 @@ class AsciiFormatPostTest(unittest.TestCase):
                       st.text(), st.text(), st.text(), st.text(), st.text(),
                       st.text())
     def test_format_post(self, no, date, name, trip, sub, com, filename, ext):
-        # Hardcoded test for 4chan, 8chan, and Lainchan.
+        # Hardcoded test for Vichan styled-imageboards.
         post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
                 "com": com, "filename": filename, "ext": ext}
         formatted = ascii_format_post(post, "4chan")
+        self.assertEqual(formatted, ascii_format_post(post, "8chan"))
+        self.assertEqual(formatted, ascii_format_post(post, "lainchan"))
         self.assertIn("Post: %s" % no, formatted)
         self.assertIn(time.ctime(date), formatted)
         if name:

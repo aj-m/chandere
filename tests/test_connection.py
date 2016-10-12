@@ -5,7 +5,8 @@ import hashlib
 import os
 import unittest
 
-from chandere2.connection import (download_file, fetch_uri, test_connection)
+from chandere2.connection import (download_file, fetch_uri,
+                                  test_connection, wrap_semaphore)
 from chandere2.output import Console
 
 from tests.dummy_objects import FakeOutput
@@ -13,12 +14,12 @@ from tests.dummy_objects import FakeOutput
 
 class TestConnectionTest(unittest.TestCase):
     def setUp(self):
+        self.loop = asyncio.get_event_loop()
+
         self.fake_stdout = FakeOutput()
         self.fake_stderr = FakeOutput()
         self.fake_output = Console(output=self.fake_stdout,
                                    error=self.fake_stderr)
-
-        self.loop = asyncio.get_event_loop()
 
     def test_report_successful_connection(self):
         target_uris = ["a.4cdn.org/g/threads.json"]
@@ -41,12 +42,12 @@ class TestConnectionTest(unittest.TestCase):
 
 class FetchUriTest(unittest.TestCase):
     def setUp(self):
+        self.loop = asyncio.get_event_loop()
+
         self.fake_stdout = FakeOutput()
         self.fake_stderr = FakeOutput()
         self.fake_output = Console(output=self.fake_stdout,
                                    error=self.fake_stderr)
-
-        self.loop = asyncio.get_event_loop()
 
     def test_yield_successful_connection(self):
         target_operation = fetch_uri("a.4cdn.org/g/threads.json", "",
@@ -76,11 +77,11 @@ class FetchUriTest(unittest.TestCase):
         self.assertIn("not exist", self.fake_stderr.last_received)
 
 
-## FIXME: Poor test <jakob@memeware.net>
+## TODO: Improve test. <jakob@memeware.net>
 class DownloadFileTest(unittest.TestCase):
     def setUp(self):
         self.loop = asyncio.get_event_loop()
-    
+
     def test_successful_image_download(self):
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
         target_operation = download_file(target_uri, ".", "gnu.png", False)

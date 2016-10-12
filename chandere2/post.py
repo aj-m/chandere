@@ -1,11 +1,9 @@
 """Module for working with posts and thread listings."""
 
-import asyncio
 import re
 import textwrap
 import time
 
-from chandere2.connection import (download_file, fetch_uri)
 from chandere2.context import CONTEXTS
 from chandere2.validate import generate_uri
 
@@ -58,12 +56,22 @@ def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     return uri + "/" + filename
 
 
+def find_files(content: dict, board: str, imageboard: str):
+    """Generator to iterate over posts and yield a tuple containing the
+    URI and filename for any files it happens to find.
+    """
+    for post in content.get("posts"):
+        for original_filename, server_filename in get_images(post, imageboard):
+            image_uri = get_image_uri(server_filename, board, imageboard)
+            yield (image_uri, original_filename)
+
+
 def ascii_format_post(post: dict, imageboard: str):
     """Returns an ASCII-formtted version of the given post."""
     context = CONTEXTS.get(imageboard)
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
 
-    body = post.get(com)
+    body = post.get(com, "")
     for pattern, substitution in SUBSTITUTIONS:
         body = re.sub(pattern, substitution, body)
 
@@ -73,7 +81,7 @@ def ascii_format_post(post: dict, imageboard: str):
     date = time.ctime(post.get(date))
     subject = "\n\"%s\"" % post.get(sub) if post.get(sub) else ""
     tripcode = "!" + post.get(trip) if post.get(trip) else ""
-    
+
     formatted = "*" * 80 + "\nPost: %s\n" % post.get(no)
     formatted += "\n%s%s on %s" % (post.get(name), tripcode, date)
     formatted += "%s\nFile: %s\n" % (subject, filename) + "*" * 80

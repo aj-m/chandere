@@ -18,7 +18,7 @@ def get_path(path: str, mode: str, output_format: str) -> str:
         if not os.access(path, os.W_OK):
             path = None
         elif mode == "ar":
-            if output_format == "sqlite3":
+            if output_format == "sqlite":
                 filename = "archive.db"
             else:
                 filename = "archive.txt"
@@ -60,17 +60,17 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
     """Forms a valid URI for the given board, thread and imageboard.
     None is returned if the imageboard does not have a known URI.
     """
-    if imageboard in CONTEXTS:
-        imageboard_uri = CONTEXTS.get(imageboard).get("uri")
-        delimiter = CONTEXTS.get(imageboard).get("delimiter")
-    else:
-        imageboard_uri = None
+    context = CONTEXTS.get(imageboard)
 
-    if imageboard_uri is None:
+    if context is None:
         uri = None
     else:
+        imageboard_uri = context.get("uri")
+        delimiter = context.get("delimiter")
+        threads_endpoint = context.get("threads_endpoint")
+
         if thread is None:
-            uri = "/".join((imageboard_uri, board, "threads" + ".json"))
+            uri = "/".join((imageboard_uri, board, threads_endpoint))
         else:
             uri = "/".join((imageboard_uri, board, delimiter,
                             thread + ".json"))

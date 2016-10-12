@@ -77,7 +77,7 @@ class GetPathTest(unittest.TestCase):
         self.assertIs(get_path("./a_file.txt", "fd", ""), None)
 
     def test_file_for_thread_archiving(self):
-        self.assertEqual(get_path(".", "ar", "sqlite3"), "./archive.db")
+        self.assertEqual(get_path(".", "ar", "sqlite"), "./archive.db")
         self.assertEqual(get_path("./file.txt", "ar", ""), "./file.txt")
         self.assertEqual(get_path(".", "ar", ""), "./archive.txt")
 
@@ -88,7 +88,7 @@ class GetTargetsTest(unittest.TestCase):
         self.fake_stderr = FakeOutput()
         self.output = Console(output=self.fake_stdout,
                               error=self.fake_stderr)
-    
+
     @hypothesis.given(st.characters(blacklist_characters="/"))
     def test_get_single_board(self, board):
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
@@ -125,7 +125,7 @@ class GetTargetsTest(unittest.TestCase):
         # Hardcoded tests for 4chan.
         target = "/".join((board, str(thread)))
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
-        
+
         if not re.search(r"[^\s\/]", escaped):
             expected_uri = "a.4cdn.org/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
@@ -139,7 +139,7 @@ class GetTargetsTest(unittest.TestCase):
         # Hardcoded tests for 8chan.
         target = "/".join((board, str(thread)))
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
-        
+
         if not re.search(r"[^\s\/]", escaped):
             expected_uri = "8ch.net/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
@@ -153,7 +153,7 @@ class GetTargetsTest(unittest.TestCase):
         # Hardcoded tests for Lainchan.
         target = "/".join((board, str(thread)))
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
-        
+
         if not re.search(r"[^\s\/]", escaped):
             expected_uri = "lainchan.org/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}

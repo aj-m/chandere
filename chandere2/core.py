@@ -7,10 +7,12 @@ import signal
 import sys
 
 from chandere2.cli import PARSER
-from chandere2.connection import (test_connection, wrap_semaphore)
+from chandere2.connection import (download_file, fetch_uri,
+                                  test_connection, wrap_semaphore)
 from chandere2.output import Console
-from chandere2.post import (get_images, get_image_uri, get_threads)
+from chandere2.post import (find_files, get_threads)
 from chandere2.validate import (get_path, get_targets)
+from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 
 MAX_CONNECTIONS = 8
 
@@ -26,14 +28,11 @@ def main():
         output.write_error("No valid targets provided.")
         sys.exit(1)
 
-    ## TODO: Rename to output_path?
-    # Get the output path.
     path = get_path(args.output, args.mode, args.output_format)
 
     if path is None:
-        output.write_error("The given output path is not valid.")
+        output.write_error("The given output path cannot be written to.")
         sys.exit(1)
-
 
     try:
         loop = asyncio.get_event_loop()
@@ -49,7 +48,6 @@ def main():
         loop.close()
 
 
-## FIXME: Cleaner, but still raises ~ 6 exceptions. <jakob@memeware.net>
 def clean_up():
     """General subroutine to safely clean up after a signal interrupt
     has been received, cancelling all tasks in the event loop.
@@ -59,9 +57,15 @@ def clean_up():
 
 
 async def main_loop(target_uris: dict, path: str, args, output):
-    """Main scraping loop."""
+    """Loop that continually iterates over targets, processing them
+    respective to the mode of operation and stopping when finished.
+    """
+    iterations = 0
+    imageboard = args.imageboard
+    create_archive(args.mode, args.output_format, path)
+
     while True:
-        imageboard = args.imageboard
+        iterations += 1
         operations = []
 
         if args.nocap:
@@ -78,35 +82,36 @@ async def main_loop(target_uris: dict, path: str, args, output):
 
 
         for future in asyncio.as_completed(operations):
-            board, thread, _ = target_uris[uri]
             content, error, last_load, uri = await future
+            board, thread, _ = target_uris[uri]
+            output.write_debug("Connected to %s..." % uri)
 
             if error:
                 del target_uris[uri]
                 continue
 
-            ## TODO: Separate into subroutines? <jakob@memeware.net>
             if thread and args.mode == "fd":
-                ## TODO: Add support for contexts. <jakob@memeware.net>
-                for post in content.get("posts"):
-                    images = get_images(post, imageboard)
-                    for original_filename, server_filename in images:
-                        ## TODO: Clean up. <jakob@memeware.net>
-                        image_uri = get_image_uri(server_filename, board,
-                                                  imageboard)
-                        output.write("Downloading %s..." % original_filename)
+                for image, filename in find_files(content, board, imageboard):
+                    output.write("Downloading %s..." % filename)
+                    await download_file(image, path, filename, args.ssl)
 
-                        ## TODO: Clean up. <jakob@memeware.net>
-                        await download_file(image_uri, path, original_filename,
-                                            args.ssl)
             elif thread and args.mode == "ar":
-                ## TODO: Add support for contexts. <jakob@memeware.net>
-                for post in content.get("posts"):
-                    pass
+                if args.output_format == "sqlite":
+                    archive_sqlite(content, path, imageboard)
+                else:
+                    archive_plaintext(content, path, imageboard)
             else:
                 for uri in get_threads(content, board, args.imageboard):
                     target_uris[uri] = [board, True, ""]
 
-            target_uris[uri][2] = last_load
+            if last_load is not None:
+                target_uris[uri][2] = last_load
+            else:
+                target_uris[uri][2] = "Loaded"
 
-        break ##
+        if args.continuous:
+            pass
+        elif all(thread for _, thread, _ in target_uris.values()):
+            break
+        elif iterations > 1:
+            break

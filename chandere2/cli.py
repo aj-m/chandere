@@ -91,8 +91,7 @@ MODAL_OPTIONS.add_argument(
 )
 SCRAPER_OPTIONS.add_argument(
     "--continuous",
-    action="store_false",
-    dest="run_once",
+    action="store_true",
     help="Rather than exiting as soon as the scraping task has\ncompleted, "
     "continue to refresh for new posts until a\nSIGINT is received.\n\n"
 )
@@ -129,5 +128,5 @@ OUTPUT_OPTIONS.add_argument(
     metavar="FMT",
     default="ascii",
     help="Specify the format that output should be put into. Can\nbe either "
-    "\"ascii\" or \"sqlite3\"."
+    "\"plaintext\" or \"sqlite\"."
 )
