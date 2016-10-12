@@ -10,6 +10,9 @@ from chandere2.write import (archive_sqlite, archive_plaintext,
 
 ## TODO: Clean up. <jakob@memeware.net>
 class InsertToFileTest(unittest.TestCase):
+    def cleanUp(self):
+        os.remove("test_archive.txt")
+    
     def test_insert_at_end(self):
         with open("test_archive.txt", "w+") as test_archive:
             post = "Post: 1"
