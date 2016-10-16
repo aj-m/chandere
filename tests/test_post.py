@@ -4,27 +4,9 @@ import unittest
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere2.post import (ascii_format_post, find_files, get_images,
-                            get_image_uri, get_threads)
+from chandere2.post import (ascii_format_post, filter_posts, find_files,
+                            get_images, get_image_uri, get_threads)
 from chandere2.validate import generate_uri
-
-
-class GetImageURITest(unittest.TestCase):
-    @hypothesis.given(st.text(), st.text(), st.text())
-    def test_get_image_uri(self, name, extension, board):
-        filename = ".".join((name, extension))
-
-        # Hardcoded test for 4chan.
-        self.assertEqual(get_image_uri(filename, board, "4chan"),
-                         "/".join(("i.4cdn.org", board, filename)))
-
-        # Hardcoded test for 8chan.
-        self.assertEqual(get_image_uri(filename, board, "8chan"),
-                         "/".join(("media.8ch.net/file_store", filename)))
-
-        # Hardcoded test for Lainchan.
-        self.assertEqual(get_image_uri(filename, board, "lainchan"),
-                         "/".join(("lainchan.org", board, "src", filename)))
 
 
 ## TODO: Test for contextual scraping. <jakob@memeware.net>
@@ -83,6 +65,24 @@ class GetImagesTest(unittest.TestCase):
         self.assertEqual(get_images(content, "lainchan"), parsed)
 
 
+class GetImageURITest(unittest.TestCase):
+    @hypothesis.given(st.text(), st.text(), st.text())
+    def test_get_image_uri(self, name, extension, board):
+        filename = ".".join((name, extension))
+
+        # Hardcoded test for 4chan.
+        self.assertEqual(get_image_uri(filename, board, "4chan"),
+                         "/".join(("i.4cdn.org", board, filename)))
+
+        # Hardcoded test for 8chan.
+        self.assertEqual(get_image_uri(filename, board, "8chan"),
+                         "/".join(("media.8ch.net/file_store", filename)))
+
+        # Hardcoded test for Lainchan.
+        self.assertEqual(get_image_uri(filename, board, "lainchan"),
+                         "/".join(("lainchan.org", board, "src", filename)))
+
+
 class FindFilesTest(unittest.TestCase):
     @hypothesis.given(st.text(), st.text(), st.text(), st.integers())
     def test_find_files(self, name, extension, board, tim):
@@ -117,6 +117,21 @@ class FindFilesTest(unittest.TestCase):
         else:
             parsed = []
         self.assertEqual(list(find_files(content, board, "lainchan")), parsed)
+
+
+class FilterPostsTest(unittest.TestCase):
+    @hypothesis.given(st.text(), st.text())
+    def test_no_filters(self, field, value):
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [])
+        self.assertEqual(content, {"posts": [{field: value}]})
+
+    # Regex characters are blacklisted to prevent false-negatives.
+    @hypothesis.given(st.text(), st.characters(blacklist_characters="*+?()"))
+    def test_match_filter(self, field, value):
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [(field, value)])
+        self.assertEqual(content, {"posts": []})
 
 
 class AsciiFormatPostTest(unittest.TestCase):

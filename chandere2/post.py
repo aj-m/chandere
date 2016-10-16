@@ -71,8 +71,8 @@ def filter_posts(content: dict, filters: list):
     to a given list of filters.
     """
     for index, post in enumerate(content.get("posts", [])):
-        for field, pattern in filters:p
-            if re.search(pattern, post.get(field))
+        for field, pattern in filters:
+            if re.search(pattern, post.get(field)):
                 del content.get("posts")[index]
 
 
