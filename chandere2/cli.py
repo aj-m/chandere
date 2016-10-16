@@ -90,6 +90,11 @@ MODAL_OPTIONS.add_argument(
     help="Archive every post in the given targets.\n\n"
 )
 SCRAPER_OPTIONS.add_argument(
+    "--filters",
+    nargs="*",
+    help="[Document me!]\n\n"
+)
+SCRAPER_OPTIONS.add_argument(
     "--continuous",
     action="store_true",
     help="Rather than exiting as soon as the scraping task has\ncompleted, "

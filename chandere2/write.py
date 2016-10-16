@@ -50,7 +50,7 @@ def archive_plaintext(content: dict, path: str, imageboard: str):
             formatted = ascii_format_post(post, imageboard)
             insert_to_file(output_file, formatted, parent, post.get(no))
 
-            if post.get("resto") == 0:
+            if post.get("resto", 0) == 0:
                 parent = post.get(no)
 
 

@@ -10,15 +10,15 @@ from chandere2.cli import PARSER
 from chandere2.connection import (download_file, fetch_uri,
                                   test_connection, wrap_semaphore)
 from chandere2.output import Console
-from chandere2.post import (find_files, get_threads)
-from chandere2.validate import (get_path, get_targets)
+from chandere2.post import (find_files, filter_posts, get_threads)
+from chandere2.validate import (get_filters, get_path, get_targets)
 from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 
 MAX_CONNECTIONS = 8
 
 
 def main():
-    """Entry-point to Chandere2."""
+    """Command-line entry-point to Chandere2."""
     args = PARSER.parse_args()
     output = Console(debug=args.debug)
 
@@ -64,6 +64,8 @@ async def main_loop(target_uris: dict, path: str, args, output):
     imageboard = args.imageboard
     create_archive(args.mode, args.output_format, path)
 
+    filters = get_filters(args.filters, imageboard, output) ##
+
     while True:
         iterations += 1
         operations = []
@@ -89,6 +91,8 @@ async def main_loop(target_uris: dict, path: str, args, output):
             if error:
                 del target_uris[uri]
                 continue
+
+            filter_posts(content, filters)
 
             if thread and args.mode == "fd":
                 for image, filename in find_files(content, board, imageboard):

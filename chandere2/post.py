@@ -66,6 +66,24 @@ def find_files(content: dict, board: str, imageboard: str):
             yield (image_uri, original_filename)
 
 
+def check_filtered(text: str, pattern: str):
+    """Returns whether or not a field of text is covered by a given
+    4chan-regexp styled filtering pattern.
+    """
+    return pattern in text
+
+
+def filter_posts(content: dict, filters: list):
+    """Removes fields from the "posts" attribute of a dictionary
+    according to a list of tuples, containing a field and a 4chan-regexp
+    styled filtering pattern.
+    """
+    for index, post in enumerate(content.get("posts", [])):
+        for field, pattern in filters:
+            if check_filtered(str(post.get(field)), pattern):
+                del content.get("posts")[index]
+
+
 def ascii_format_post(post: dict, imageboard: str):
     """Returns an ASCII-formtted version of the given post."""
     context = CONTEXTS.get(imageboard)
@@ -77,13 +95,15 @@ def ascii_format_post(post: dict, imageboard: str):
 
     if post.get(filename) and post.get(ext):
         filename = ".".join((post.get(filename), post.get(ext)))
+    else:
+        filename = "[No File]"
 
     date = time.ctime(post.get(date))
     subject = "\n\"%s\"" % post.get(sub) if post.get(sub) else ""
     tripcode = "!" + post.get(trip) if post.get(trip) else ""
 
     formatted = "*" * 80 + "\nPost: %s\n" % post.get(no)
-    formatted += "\n%s%s on %s" % (post.get(name), tripcode, date)
+    formatted += "%s%s on %s" % (post.get(name), tripcode, date)
     formatted += "%s\nFile: %s\n" % (subject, filename) + "*" * 80
     formatted += "\n"
 

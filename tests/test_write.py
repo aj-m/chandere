@@ -4,15 +4,16 @@ import os
 import sqlite3
 import unittest
 
+import hypothesis
+import hypothesis.strategies as st
+
+from chandere2.post import ascii_format_post
 from chandere2.write import (archive_sqlite, archive_plaintext,
                              insert_to_file, create_archive)
 
 
 ## TODO: Clean up. <jakob@memeware.net>
 class InsertToFileTest(unittest.TestCase):
-    def cleanUp(self):
-        os.remove("test_archive.txt")
-    
     def test_insert_at_end(self):
         with open("test_archive.txt", "w+") as test_archive:
             post = "Post: 1"
@@ -20,6 +21,8 @@ class InsertToFileTest(unittest.TestCase):
 
         with open("test_archive.txt", "r+") as test_archive:
             self.assertEqual(test_archive.read(), "Post: 1\n\n\n")
+
+        os.remove("test_archive.txt")
 
     def test_insert_after_parent(self):
         with open("test_archive.txt", "w+") as test_archive:
@@ -30,6 +33,8 @@ class InsertToFileTest(unittest.TestCase):
         with open("test_archive.txt", "r+") as test_archive:
             self.assertEqual(test_archive.read(),
                              "Post: 1" + "*" * 80 + "\nPost: 2\n\n")
+
+        os.remove("test_archive.txt")
 
 
 class CreateArchiveTest(unittest.TestCase):

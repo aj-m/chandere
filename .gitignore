@@ -10,5 +10,6 @@ dist/
 *.egg-info
 *.pyc
 *.egg
+TAGS
 
 discarded/

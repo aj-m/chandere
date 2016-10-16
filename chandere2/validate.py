@@ -95,3 +95,15 @@ def get_targets(targets: list, imageboard: str, output) -> dict:
             output.write_error("Invalid target: %s" % target)
 
     return target_uris
+
+
+def get_filters(argument_list: list, imageboard: str, output) -> list:
+    """[Document me!]"""
+    ## TODO: Field shorthands. <jakob@memeware.net>
+    filters = []
+    for argument in argument_list:
+        if argument.count(":") == 1:
+            filters.append(tuple(argument.split(":")))
+        else:
+            output.write("Invalid filter pattern: %s." % argument)
+    return filters
