@@ -13,8 +13,9 @@ Chandere2 is free software, licensed under the [GNU General Public License.](htt
 Primary Features
 ================
 
-* Able to scrape from multiple boards and threads simutaneously.
-* Archives to several formats, including SQLite and plaintext.
+- **Scraping from multiple boards and threads simutaneously** **[Implemented]**
+- **Archiving to several formats, including SQLite and plaintext.** **[Implemented]**
+- **Post filtering with syntax similar to that of 4chan's.** **[Implemented/Basic]**
 
 
 Installation
@@ -69,23 +70,24 @@ All of these examples will scrape from 4chan. An alternate imageboard can be spe
 Options
 -------
 **Documentation**
-* -h, --help | Display a list of available command-line arguments.
-* -v, --version | Display the current version of Chandere2.
-* --list-imageboards | List the available imageboard aliases.
+- **-h, --help** - Display a list of available command-line arguments.
+- **-v, --version** - Display the current version of Chandere2.
+- **--list-imageboards** - List the available imageboard aliases.
 
 **Scraping**
-* targets | Pairs of a board and optionally a thread ID to connect to. If a thread is not specified, Chandere2 will attempt to scrape the entire board.
-* -i, --imageboard | Specify the imageboard to connect to. Available aliases are listed with "--list-imageboards"
-* -d, --download | Crawl for and download all of the files in a board/thread.
-* -a, --archive | Crawl for and archive all of the posts in a board/thread.
-* --continuous | Rather than quitting as soon as the task is done, Chandere2 will attempt to continuously refresh and check for new posts until a SIGINT is received.
-* --ssl | Use HTTPS if available.
-* --nocap | Will not attempt to limit the number of concurrent connections. This generates a very large amount of network traffic and will certainly hammer servers. Please only use this if you know what you're doing.
+- **targets** - Pairs of a board and optionally a thread ID to connect to. If a thread is not specified, Chandere2 will attempt to scrape the entire board.
+- **-i, --imageboard** - Specify the imageboard to connect to. Available aliases are listed with "--list-imageboards"
+- **-d, --download** - Crawl for and download all of the files in a board/thread.
+- **-a, --archive** - Crawl for and archive all of the posts in a board/thread.
+- **--filter** - A list of filters, following the format of [field]:[pattern] where [field] is the post field and [pattern] is a filtering pattern following 4chan's "Comment, Subject and E-mail filter" format.
+- **--continuous** - Rather than quitting as soon as the task is done, Chandere2 will attempt to continuously refresh and check for new posts until a SIGINT is received.
+- **--ssl** - Use HTTPS if available.
+- **--nocap** - Will not attempt to limit the number of concurrent connections. This generates a very large amount of network traffic and will certainly hammer servers. Please only use this if you know what you're doing.
 
 **Output**
-* --debug | Indicates that every log message should be shown during runtime. This is helpful when opening a bug report.
-* -o, --output | Designates the output directory if operating in File Downloading mode, or the file to output to if operating in Archiving mode. Defaults to the current working directory.
-* --output-format | Specify the format that output should be put into. Can be either "plaintext" or "sqlite". The default is plaintext.
+- **--debug** - Indicates that every log message should be shown during runtime. This is helpful when opening a bug report.
+- **-o, --output** - Designates the output directory if operating in File Downloading mode, or the file to output to if operating in Archiving mode. Defaults to the current working directory.
+- **--output-format** - Specify the format that output should be put into. Can be either "plaintext" or "sqlite". The default is plaintext.
 
 
 TODO

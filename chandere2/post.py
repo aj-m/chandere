@@ -66,21 +66,13 @@ def find_files(content: dict, board: str, imageboard: str):
             yield (image_uri, original_filename)
 
 
-def check_filtered(text: str, pattern: str):
-    """Returns whether or not a field of text is covered by a given
-    4chan-regexp styled filtering pattern.
-    """
-    return pattern in text
-
-
 def filter_posts(content: dict, filters: list):
-    """Removes fields from the "posts" attribute of a dictionary
-    according to a list of tuples, containing a field and a 4chan-regexp
-    styled filtering pattern.
+    """Removes values of the "posts" attribute of a dictionary according
+    to a given list of filters.
     """
     for index, post in enumerate(content.get("posts", [])):
-        for field, pattern in filters:
-            if check_filtered(str(post.get(field)), pattern):
+        for field, pattern in filters:p
+            if re.search(pattern, post.get(field))
                 del content.get("posts")[index]
 
 

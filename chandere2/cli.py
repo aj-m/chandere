@@ -90,9 +90,15 @@ MODAL_OPTIONS.add_argument(
     help="Archive every post in the given targets.\n\n"
 )
 SCRAPER_OPTIONS.add_argument(
-    "--filters",
+    "--filter",
+    metavar="x",
     nargs="*",
-    help="[Document me!]\n\n"
+    dest="filters",
+    help="A list of filters to check posts against. Filters should\nfollow "
+    "the pattern of [field]:[pattern], where [field] is\nthe post field and "
+    "[pattern] is a filtering pattern\nfollowing 4chan's \"Comment, Subject "
+    "and E-mail filter\"\nformat. Patterns are case insensitive.\nExample: "
+    "\"name:moot.\"\n\n"
 )
 SCRAPER_OPTIONS.add_argument(
     "--continuous",

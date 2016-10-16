@@ -60,6 +60,8 @@ async def main_loop(target_uris: dict, path: str, args, output):
     """Loop that continually iterates over targets, processing them
     respective to the mode of operation and stopping when finished.
     """
+    output.write_debug("Starting main loop...")
+
     iterations = 0
     imageboard = args.imageboard
     create_archive(args.mode, args.output_format, path)

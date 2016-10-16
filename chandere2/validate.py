@@ -97,13 +97,69 @@ def get_targets(targets: list, imageboard: str, output) -> dict:
     return target_uris
 
 
-def get_filters(argument_list: list, imageboard: str, output) -> list:
-    """[Document me!]"""
-    ## TODO: Field shorthands. <jakob@memeware.net>
-    filters = []
-    for argument in argument_list:
+def convert_to_regexp(pattern: str) -> str:
+    """Converts a given filter pattern to regular expression syntax."""
+    # Separate subpatterns encapsulated in forward slashes from the
+    # rest, so that wildcard substitutions don't affect anything meant
+    # to use regular expression syntax.
+    if re.search(r"\/.+\/", pattern):
+        subpatterns = []
+        while True:
+            regexp = re.search(r"\/.+\/", pattern)
+            if not regexp:
+                break
+            subpatterns.append(pattern[:regexp.start()])
+            subpatterns.append(pattern[regexp.start():regexp.end()])
+            pattern = pattern[regexp.end():]
+        subpatterns.append(pattern)
+    else:
+        subpatterns = [pattern]
+
+
+    # Clear out the pattern variable, since it will be used to store the
+    # regular expression as each subexpression is evaluated.
+    pattern = ""
+
+    # Turn wildcards into an appropriate regex substitution if and only
+    # if the subpattern is not already a regular expression.
+    for subpattern in subpatterns:
+        if subpattern.startswith("/") and subpattern.endswith("/"):
+            pattern += subpattern[1:-1]
+
+        else:
+            subpattern = re.sub(r"\*(\s|$)", ".*", subpattern)
+            subpattern = re.sub(r"\*(?=\w)", ".", subpattern)
+            pattern += subpattern
+
+    return pattern
+
+
+def split_pattern(pattern: str) -> iter:
+    """Generator that splits a given filter pattern with respect to
+    4chan's "and operator" and "exact match" syntax.
+    """
+    while True:
+        regexp = re.search(r"\".+\"", pattern)
+        if not regexp:
+            break
+
+        yield pattern[:regexp.start()]
+        yield pattern[regexp.start():regexp.end()][1:-1]
+        pattern = pattern[regexp.end():]
+
+    yield pattern
+
+
+def get_filters(filters: list, imageboard: str, output) -> list:
+    """Returns a list of tuples containing a post field and a filter
+    pattern according to a list of colon-separated arguments.
+    """
+    evaluated = []
+    for argument in filters:
         if argument.count(":") == 1:
-            filters.append(tuple(argument.split(":")))
+            field, pattern = argument.split(":")
+            for subexpression in split_pattern(pattern):
+                evaluated.append((field, convert_to_regexp(subexpression)))
         else:
             output.write("Invalid filter pattern: %s." % argument)
     return filters
