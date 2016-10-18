@@ -134,6 +134,7 @@ def convert_to_regexp(pattern: str) -> str:
     return pattern
 
 
+## TODO: Don't yield empty strings.
 def split_pattern(pattern: str) -> iter:
     """Generator that splits a given filter pattern with respect to
     4chan's "and operator" and "exact match" syntax.
@@ -141,13 +142,16 @@ def split_pattern(pattern: str) -> iter:
     while True:
         regexp = re.search(r"\".+\"", pattern)
         if not regexp:
+            if re.search(r"\s", pattern):
+                for subpattern in pattern.split()[:-1]:
+                    yield subpattern.strip()
             break
 
-        yield pattern[:regexp.start()]
-        yield pattern[regexp.start():regexp.end()][1:-1]
-        pattern = pattern[regexp.end():]
+        yield pattern[:regexp.start()].strip()
+        yield pattern[regexp.start():regexp.end()][1:-1].strip()
+        pattern = pattern[regexp.end():].strip()
 
-    yield pattern
+    yield pattern.strip()
 
 
 def get_filters(filters: list, imageboard: str, output) -> list:

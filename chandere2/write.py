@@ -5,7 +5,7 @@ import re
 import sqlite3
 
 from chandere2.context import CONTEXTS
-from chandere2.post import ascii_format_post
+from chandere2.post import (ascii_format_post, unescape)
 
 
 def archive_sqlite(content: dict, path: str, imageboard: str):
@@ -30,9 +30,9 @@ def archive_sqlite(content: dict, path: str, imageboard: str):
 
         cursor.execute("INSERT INTO posts (no, time, name, trip, sub, com, "
                        "filename) VALUES (?, ?, ?, ?, ?, ?, ?);",
-                       (post.get(no), post.get(date), post.get(name),
-                        post.get(trip), post.get(sub), post.get(com),
-                        filename))
+                       (post.get(no), post.get(date), unescape(post.get(name)),
+                        post.get(trip), unescape(post.get(sub)),
+                        unescape(post.get(com)), filename))
 
     connection.commit()
 

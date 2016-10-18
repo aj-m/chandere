@@ -76,14 +76,19 @@ def filter_posts(content: dict, filters: list):
                 del content.get("posts")[index]
 
 
+def unescape(text: str) -> str:
+    """Replaces escaped HTML in some text with escape sequences."""
+    for pattern, substitution in SUBSTITUTIONS:
+        text = re.sub(pattern, substitution, text)
+    return text
+
+
 def ascii_format_post(post: dict, imageboard: str):
     """Returns an ASCII-formtted version of the given post."""
     context = CONTEXTS.get(imageboard)
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
 
-    body = post.get(com, "")
-    for pattern, substitution in SUBSTITUTIONS:
-        body = re.sub(pattern, substitution, body)
+    body = unescape(post.get(com, ""))
 
     if post.get(filename) and post.get(ext):
         filename = ".".join((post.get(filename), post.get(ext)))
@@ -91,11 +96,11 @@ def ascii_format_post(post: dict, imageboard: str):
         filename = "[No File]"
 
     date = time.ctime(post.get(date))
-    subject = "\n\"%s\"" % post.get(sub) if post.get(sub) else ""
+    subject = "\n\"%s\"" % unescape(post.get(sub)) if post.get(sub) else ""
     tripcode = "!" + post.get(trip) if post.get(trip) else ""
 
     formatted = "*" * 80 + "\nPost: %s\n" % post.get(no)
-    formatted += "%s%s on %s" % (post.get(name), tripcode, date)
+    formatted += "%s%s on %s" % (unescape(post.get(name)), tripcode, date)
     formatted += "%s\nFile: %s\n" % (subject, filename) + "*" * 80
     formatted += "\n"
 

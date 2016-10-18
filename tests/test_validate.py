@@ -171,3 +171,10 @@ class GetTargetsTest(unittest.TestCase):
         self.assertIn("Invalid target", self.fake_stderr.last_received)
         self.assertFalse(get_targets(["/"], "lainchan", self.output))
         self.assertIn("Invalid target", self.fake_stderr.last_received)
+
+
+# class ConvertToRegexpTest(unittest.TestCase):
+
+
+# class SplitPatternTest(unittest.TestCase):
+#     def yield_e
