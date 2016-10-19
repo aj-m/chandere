@@ -1,3 +1,4 @@
+import copy
 import os
 import re
 import unittest
@@ -7,8 +8,9 @@ import hypothesis
 import hypothesis.strategies as st
 
 from chandere2.output import Console
-from chandere2.validate import (generate_uri, get_path,
-                                get_targets, strip_target)
+from chandere2.validate import (convert_to_regexp, generate_uri,
+                                get_filters, get_path, get_targets,
+                                split_pattern, strip_target)
 
 from tests.dummy_objects import FakeOutput
 
@@ -176,5 +178,42 @@ class GetTargetsTest(unittest.TestCase):
 # class ConvertToRegexpTest(unittest.TestCase):
 
 
-# class SplitPatternTest(unittest.TestCase):
-#     def yield_e
+class SplitPatternTest(unittest.TestCase):
+    @hypothesis.given(
+        st.lists(
+            elements=st.characters(blacklist_characters="\"")
+        )
+    )
+    def test_use_and_operator(self, pattern):
+        expected = list(filter(lambda x: x.strip(), pattern))
+        self.assertEqual(list(split_pattern(" ".join(pattern))), expected)
+
+    ## TODO: Clean up. <jakob@memeware.net>
+    @hypothesis.given(
+        st.lists(
+            elements=st.characters(blacklist_characters="\"\n")
+        ),
+        st.lists(
+            elements=st.characters(blacklist_characters="\"\n")
+        ),
+        st.lists(
+            elements=st.characters(blacklist_characters="\"\n")
+        )
+    )
+    def test_use_exact_match(self, prefix, exact, postfix):
+        pattern = " \" ".join(map(" ".join, (prefix, exact, postfix)))
+        
+        expected = prefix if prefix else []
+        if exact and "".join(exact).strip():
+            expected.append(" ".join(exact).strip())
+        if postfix:
+            expected += postfix
+
+        expected = filter(lambda x: not re.search(r"^\s*$", x), expected)
+
+        self.assertEqual(sorted(list(split_pattern(pattern))), sorted(expected))
+
+
+
+# class GetFiltersTest(unittest.TestCase):
+#     pass

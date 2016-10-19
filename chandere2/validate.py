@@ -134,24 +134,48 @@ def convert_to_regexp(pattern: str) -> str:
     return pattern
 
 
-## TODO: Don't yield empty strings.
 def split_pattern(pattern: str) -> iter:
     """Generator that splits a given filter pattern with respect to
     4chan's "and operator" and "exact match" syntax.
     """
     while True:
-        regexp = re.search(r"\".+\"", pattern)
+        # Look for the first exact-match subpattern.
+        regexp = re.search(r"\".*\"", pattern)
+
         if not regexp:
-            if re.search(r"\s", pattern):
-                for subpattern in pattern.split()[:-1]:
+            # Parse and operators if no exact matches are found.
+            if " " in pattern.strip():
+                for subpattern in pattern.split():
                     yield subpattern.strip()
+
+            # If there are no and operators either, but the rest of the
+            # pattern is parseable, yield the stripped pattern.
+            elif pattern.strip():
+                yield pattern.strip()
+
+            # An empty string is a sentinel value.
+            pattern = ""
             break
 
-        yield pattern[:regexp.start()].strip()
-        yield pattern[regexp.start():regexp.end()][1:-1].strip()
-        pattern = pattern[regexp.end():].strip()
+        # Ensure that the exact match isn't empty. 
+        if not re.search(r"^\"\s*\"$", regexp.group().strip()):
+            # Yield the exact match
+            ## FIXME: Check might not be necessary.
+            exact = pattern[regexp.start():regexp.end()][1:-1]
+            if exact.strip():
+                yield exact.strip()
 
-    yield pattern.strip()
+            # Remove the yielded parts of the pattern.
+            # pattern = pattern[regexp.end():].strip()
+            pattern = pattern[:regexp.start()] + pattern[regexp.end():]
+
+        # If the exact match is empty, just remove it.
+        else:
+            pattern = pattern[:regexp.start()] + pattern[regexp.end():]
+
+    # If there's anything left, yield it.
+    if pattern.strip():
+        yield pattern.strip()
 
 
 def get_filters(filters: list, imageboard: str, output) -> list:
