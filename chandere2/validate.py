@@ -142,36 +142,24 @@ def split_pattern(pattern: str) -> iter:
         # Look for the first exact-match subpattern.
         regexp = re.search(r"\".*\"", pattern)
 
+        # If no exact-match subpatterns are found,
+        # parse any potential and operators and exit.
         if not regexp:
-            # Parse and operators if no exact matches are found.
             if " " in pattern.strip():
                 for subpattern in pattern.split():
                     yield subpattern.strip()
-
-            # If there are no and operators either, but the rest of the
-            # pattern is parseable, yield the stripped pattern.
             elif pattern.strip():
                 yield pattern.strip()
 
-            # An empty string is a sentinel value.
+            # An empty string is used as a sentinel value.
             pattern = ""
             break
 
         # Ensure that the exact match isn't empty. 
         if not re.search(r"^\"\s*\"$", regexp.group().strip()):
-            # Yield the exact match
-            ## FIXME: Check might not be necessary.
-            exact = pattern[regexp.start():regexp.end()][1:-1]
-            if exact.strip():
-                yield exact.strip()
+            yield pattern[regexp.start():regexp.end()][1:-1].strip()
 
-            # Remove the yielded parts of the pattern.
-            # pattern = pattern[regexp.end():].strip()
-            pattern = pattern[:regexp.start()] + pattern[regexp.end():]
-
-        # If the exact match is empty, just remove it.
-        else:
-            pattern = pattern[:regexp.start()] + pattern[regexp.end():]
+        pattern = pattern[:regexp.start()] + pattern[regexp.end():]
 
     # If there's anything left, yield it.
     if pattern.strip():

@@ -160,7 +160,7 @@ class AsciiFormatPostTest(unittest.TestCase):
 
         self.assertEqual(formatted, ascii_format_post(post, "8chan"))
         self.assertEqual(formatted, ascii_format_post(post, "lainchan"))
-        self.assertIn("Post: %s" % no, formatted)
+        self.assertIn("Post ID: %s" % no, formatted)
         self.assertIn(time.ctime(date), formatted)
 
         if name:
@@ -170,4 +170,4 @@ class AsciiFormatPostTest(unittest.TestCase):
         if sub:
             self.assertIn("\"%s\"" % sub, formatted)
         if filename and ext:
-            self.assertIn(".".join((filename, ext)), formatted)
+            self.assertIn(filename + ext, formatted)

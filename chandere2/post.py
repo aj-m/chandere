@@ -87,25 +87,30 @@ def ascii_format_post(post: dict, imageboard: str):
     """Returns an ASCII-formtted version of the given post."""
     context = CONTEXTS.get(imageboard)
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
-
-    body = unescape(post.get(com, ""))
-
-    if post.get(filename) and post.get(ext):
-        filename = ".".join((post.get(filename), post.get(ext)))
-    else:
-        filename = "[No File]"
+    string = ["=" * 80, "Post ID: %s" % post.get(no)]
 
     date = time.ctime(post.get(date))
-    subject = "\n\"%s\"" % unescape(post.get(sub)) if post.get(sub) else ""
     tripcode = "!" + post.get(trip) if post.get(trip) else ""
+    string.append("%s%s on %s" % (unescape(post.get(name)), tripcode, date))
 
-    formatted = "*" * 80 + "\nPost: %s\n" % post.get(no)
-    formatted += "%s%s on %s" % (unescape(post.get(name)), tripcode, date)
-    formatted += "%s\nFile: %s\n" % (subject, filename) + "*" * 80
-    formatted += "\n"
+    if post.get(sub):
+        string.append("\"%s\"" % unescape(post.get(sub)))
+    else:
+        string.append("[No Subject]")
 
+    if post.get(filename) and post.get(ext):
+        string.append("File: " + post.get(filename) + post.get(ext))
+    else:
+        string.append("File: [No File]")
+
+    string.append("=" * 80)
+
+    body = unescape(post.get(com, ""))
     wrap = lambda line: textwrap.wrap(line, width=80, replace_whitespace=False)
-    formatted += "\n".join("\n".join(wrap(line)) for line in body.splitlines())
-    formatted += "\n" + "*" * 80
 
-    return formatted
+    for line in body.splitlines():
+        string.append("\n".join(wrap(line)))
+
+    string.append("=" * 80)
+
+    return "\n".join(string)

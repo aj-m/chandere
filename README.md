@@ -66,6 +66,12 @@ All of these examples will scrape from 4chan. An alternate imageboard can be spe
     Available Imageboard Aliases: lainchan, 4chan
     $ chandere2 /cyb/ -d -o Cyberpunk -i lainchan
 
+Post filtering is by far the least intuitive feature to use, though it should feel somewhat familiar to anyone who has used 4chan's built in filtering system. Rather than being limited to five post fields, any field in the json output can be filtered. The following example will only download WEBM and MP4 videos, and will ignore files with the MD5 checksum of "Q0GnSJ3ej7ikA3dfYiXJMA==".
+
+     $ chandere2 /gif/9463458 -d --filter ext:/[!(.webm)(.mp4)]/ md5:Q0GnSJ3ej7ikA3dfYiXJMA==
+
+While filter patterns can be as simple as the md5sum in the example above, there are several features to make filtering more useful. When several words or phrases are joined with spaces, the filtering engine will check to see if the pattern occurs in any order. Double quotes can be used to force the order of a match; for example, '--filter com:"that feel when"' will not filter "when that feel" in a comment body. Regular expressions can be used as long as the regexp is enclosed in forward slashes.
+
 
 Options
 -------
