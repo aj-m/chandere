@@ -78,13 +78,15 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
     return uri
 
 
-def get_targets(targets: list, imageboard: str, output) -> dict:
+## TODO: Redocument. <jakob@memeware.net>
+def get_targets(targets: list, imageboard: str) -> tuple:
     """Strips the list of given target strings, creating and returning
     a dictionary where the URI for each target points to a list
     containing the board, whether or not the target refers to a thread,
     and a space to hold the HTTP Last-Modified header.
     """
     target_uris = {}
+    failed = []
 
     for target in targets:
         board, thread = strip_target(target)
@@ -92,9 +94,9 @@ def get_targets(targets: list, imageboard: str, output) -> dict:
             uri = generate_uri(board, thread, imageboard)
             target_uris[uri] = [board, bool(thread), ""]
         else:
-            output.write_error("Invalid target: %s" % target)
+            failed.append(target)
 
-    return target_uris
+    return (target_uris, failed)
 
 
 def convert_to_regexp(pattern: str) -> str:
@@ -155,7 +157,7 @@ def split_pattern(pattern: str) -> iter:
             pattern = ""
             break
 
-        # Ensure that the exact match isn't empty. 
+        # Ensure that the exact match isn't empty.
         if not re.search(r"^\"\s*\"$", regexp.group().strip()):
             yield pattern[regexp.start():regexp.end()][1:-1].strip()
 
@@ -166,16 +168,17 @@ def split_pattern(pattern: str) -> iter:
         yield pattern.strip()
 
 
-def get_filters(filters: list, imageboard: str, output) -> list:
+def get_filters(filters: list, imageboard: str) -> tuple:
     """Returns a list of tuples containing a post field and a filter
     pattern according to a list of colon-separated arguments.
     """
     evaluated = []
+    failed = []
     for argument in filters:
         if argument.count(":") == 1:
             field, pattern = argument.split(":")
             for subexpression in split_pattern(pattern):
                 evaluated.append((field, convert_to_regexp(subexpression)))
         else:
-            output.write("Invalid filter pattern: %s." % argument)
-    return filters
+            failed.append(argument)
+    return (evaluated, failed)

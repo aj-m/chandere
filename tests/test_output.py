@@ -5,7 +5,7 @@ import hypothesis.strategies as st
 
 from chandere2.output import Console
 
-from tests.dummy_objects import FakeOutput
+from tests.dummy_output import FakeOutput
 
 
 class OutputTest(unittest.TestCase):

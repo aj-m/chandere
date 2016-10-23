@@ -1,4 +1,4 @@
-# Tests assume that the CWD is writeable.
+## Tests assume that the CWD is writeable.
 
 import os
 import sqlite3

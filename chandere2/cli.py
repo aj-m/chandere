@@ -8,19 +8,20 @@ from chandere2.context import CONTEXTS
 
 
 class CustomHelp(argparse.HelpFormatter):
-    """Formatting modifications to argparse's default HelpFormatter."""
+    """Modifications to argparse's default HelpFormatter."""
     def _fill_text(self, text, width, indent):
-        return "".join(indent + line
-                       for line in text.splitlines(keepends=True))
+        filled = []
+        for line in text.splitlines(keepends=True):
+            filled.append(indent + line)
+        return "".join(filled)
 
     def _split_lines(self, text, width):
         return text.splitlines()
 
     def add_usage(self, usage, actions, groups, prefix=None):
-        if prefix is None:
-            prefix = "Usage: "
-        return super(CustomHelp, self).add_usage(usage, actions, groups,
-                                                 prefix)
+        prefix = prefix or "Usage: "
+        both = super(CustomHelp, self)
+        return both.add_usage(usage, actions, groups, prefix)
 
 
 PARSER = argparse.ArgumentParser(
@@ -31,14 +32,14 @@ PARSER = argparse.ArgumentParser(
 )
 
 
-DOCS = PARSER.add_argument_group("Documentation")
-DOCS.add_argument(
+META = PARSER.add_argument_group("Meta")
+META.add_argument(
     "-h",
     "--help",
     action="help",
     help="Display this help page and exit."
 )
-DOCS.add_argument(
+META.add_argument(
     "-v",
     "--version",
     action="version",
@@ -46,7 +47,7 @@ DOCS.add_argument(
     "released under the GNU GPLv3.\n",
     help="Display the currently installed version and exit."
 )
-DOCS.add_argument(
+META.add_argument(
     "--list-imageboards",
     action="version",
     version="Available Imageboard Aliases: %s" % ", ".join(CONTEXTS),
@@ -92,19 +93,20 @@ MODAL_OPTIONS.add_argument(
 SCRAPER_OPTIONS.add_argument(
     "--filter",
     metavar="x",
+    default=[],
     nargs="*",
     dest="filters",
     help="A list of filters to check posts against. Filters should\nfollow "
     "the pattern of [field]:[pattern], where [field] is\nthe post field and "
     "[pattern] is a filtering pattern\nfollowing 4chan's \"Comment, Subject "
-    "and E-mail filter\"\nformat. Patterns are case insensitive.\nExample: "
-    "\"name:moot.\"\n\n"
+    "and E-mail\" filter\nformat. Patterns are case insensitive, and "
+    "multiple\nfilters can be given.\n\n"
 )
 SCRAPER_OPTIONS.add_argument(
     "--continuous",
     action="store_true",
-    help="Rather than exiting as soon as the scraping task has\ncompleted, "
-    "continue to refresh for new posts until a\nSIGINT is received.\n\n"
+    help="Rather than exiting as soon as the task has completed,\ncontinue to "
+    "refresh for new posts until a SIGINT is\nreceived.\n\n"
 )
 SCRAPER_OPTIONS.add_argument(
     "--ssl",

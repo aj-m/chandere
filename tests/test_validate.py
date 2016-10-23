@@ -1,4 +1,3 @@
-import copy
 import os
 import re
 import unittest
@@ -7,12 +6,9 @@ import urllib.parse
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere2.output import Console
 from chandere2.validate import (convert_to_regexp, generate_uri,
                                 get_filters, get_path, get_targets,
                                 split_pattern, strip_target)
-
-from tests.dummy_objects import FakeOutput
 
 
 class GenerateUriTest(unittest.TestCase):
@@ -84,13 +80,8 @@ class GetPathTest(unittest.TestCase):
         self.assertEqual(get_path(".", "ar", ""), "./archive.txt")
 
 
+## TODO: Test for failed. <jakob@memeware.net>
 class GetTargetsTest(unittest.TestCase):
-    def setUp(self):
-        self.fake_stdout = FakeOutput()
-        self.fake_stderr = FakeOutput()
-        self.output = Console(output=self.fake_stdout,
-                              error=self.fake_stderr)
-
     @hypothesis.given(st.characters(blacklist_characters="/"))
     def test_get_single_board(self, board):
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
@@ -101,7 +92,7 @@ class GetTargetsTest(unittest.TestCase):
             expected_uri = "a.4cdn.org/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
 
-        parsed = get_targets([board], "4chan", self.output)
+        parsed, _ = get_targets([board], "4chan")
         self.assertEqual(parsed, expected_result)
 
         # Hardcoded test for 8chan.
@@ -109,7 +100,7 @@ class GetTargetsTest(unittest.TestCase):
             expected_uri = "8ch.net/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
 
-        parsed = get_targets([board], "8chan", self.output)
+        parsed, _ = get_targets([board], "8chan")
         self.assertEqual(parsed, expected_result)
 
         # Hardcoded test for Lainchan.
@@ -117,7 +108,7 @@ class GetTargetsTest(unittest.TestCase):
             expected_uri = "lainchan.org/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
 
-        parsed = get_targets([board], "lainchan", self.output)
+        parsed, _ = get_targets([board], "lainchan")
         self.assertEqual(parsed, expected_result)
 
 
@@ -135,7 +126,7 @@ class GetTargetsTest(unittest.TestCase):
             expected_uri = "a.4cdn.org/%s/thread/%s.json" % (escaped, thread)
             expected_result = {expected_uri: [escaped, True, ""]}
 
-        parsed = get_targets([target], "4chan", self.output)
+        parsed, _ = get_targets([target], "4chan")
         self.assertEqual(parsed, expected_result)
 
         # Hardcoded tests for 8chan.
@@ -149,7 +140,7 @@ class GetTargetsTest(unittest.TestCase):
             expected_uri = "8ch.net/%s/res/%s.json" % (escaped, thread)
             expected_result = {expected_uri: [escaped, True, ""]}
 
-        parsed = get_targets([target], "8chan", self.output)
+        parsed, _ = get_targets([target], "8chan")
         self.assertEqual(parsed, expected_result)
 
         # Hardcoded tests for Lainchan.
@@ -163,21 +154,27 @@ class GetTargetsTest(unittest.TestCase):
             expected_uri = "lainchan.org/%s/res/%s.json" % (escaped, thread)
             expected_result = {expected_uri: [escaped, True, ""]}
 
-        parsed = get_targets([target], "lainchan", self.output)
+        parsed, _ = get_targets([target], "lainchan")
         self.assertEqual(parsed, expected_result)
 
     def test_fail_invalid_target(self):
-        self.assertFalse(get_targets(["/"], "4chan", self.output))
-        self.assertIn("Invalid target", self.fake_stderr.last_received)
-        self.assertFalse(get_targets(["/"], "8chan", self.output))
-        self.assertIn("Invalid target", self.fake_stderr.last_received)
-        self.assertFalse(get_targets(["/"], "lainchan", self.output))
-        self.assertIn("Invalid target", self.fake_stderr.last_received)
+        # Hardcoded test for 4chan.
+        _, failed = get_targets(["/"], "4chan")
+        self.assertIn("/", failed)
+
+        # Hardcoded test for 8chan.
+        _, failed = get_targets(["/"], "8chan")
+        self.assertIn("/", failed)
+
+        # Hardcoded test for Lainchan.
+        _, failed = get_targets(["/"], "lainchan")
+        self.assertIn("/", failed)
 
 
 # class ConvertToRegexpTest(unittest.TestCase):
 
 
+## TODO: Write a test for yielding final part. <jakob@memeware.net>
 class SplitPatternTest(unittest.TestCase):
     @hypothesis.given(
         st.lists(
@@ -202,7 +199,7 @@ class SplitPatternTest(unittest.TestCase):
     )
     def test_use_exact_match(self, prefix, exact, postfix):
         pattern = " \" ".join(map(" ".join, (prefix, exact, postfix)))
-        
+
         expected = prefix if prefix else []
         if exact and "".join(exact).strip():
             expected.append(" ".join(exact).strip())

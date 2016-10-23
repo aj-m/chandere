@@ -1,7 +1,6 @@
-# Tests assume that a connection to 4chan can be made.
+## Tests assume that a connection to 4chan can be made.
 
 import asyncio
-import hashlib
 import os
 import unittest
 
@@ -9,7 +8,7 @@ from chandere2.connection import (download_file, fetch_uri,
                                   test_connection, wrap_semaphore)
 from chandere2.output import Console
 
-from tests.dummy_objects import FakeOutput
+from tests.dummy_output import FakeOutput
 
 
 class TestConnectionTest(unittest.TestCase):
@@ -40,18 +39,13 @@ class TestConnectionTest(unittest.TestCase):
         self.assertIn("FAILED", self.fake_stderr.last_received)
 
 
+## TODO: Write a test for HTTP/304 handling. <jakob@memeware.net>
 class FetchUriTest(unittest.TestCase):
     def setUp(self):
         self.loop = asyncio.get_event_loop()
 
-        self.fake_stdout = FakeOutput()
-        self.fake_stderr = FakeOutput()
-        self.fake_output = Console(output=self.fake_stdout,
-                                   error=self.fake_stderr)
-
     def test_yield_successful_connection(self):
-        target_operation = fetch_uri("a.4cdn.org/g/threads.json", "",
-                                     False, self.fake_output)
+        target_operation = fetch_uri("a.4cdn.org/g/threads.json", "", False)
 
         async def check_return_value():
             content, error, last_load, uri = await target_operation
@@ -63,21 +57,18 @@ class FetchUriTest(unittest.TestCase):
         self.loop.run_until_complete(check_return_value())
 
     def test_error_on_failed_connection(self):
-        target_operation = fetch_uri("a.4cdn.org/z/threads.json", "",
-                                     False, self.fake_output)
+        target_operation = fetch_uri("a.4cdn.org/z/threads.json", "", False)
 
         async def check_return_value():
             content, error, last_load, uri = await target_operation
             self.assertIsNone(content)
-            self.assertTrue(error)
+            self.assertEqual(error, 404)
             self.assertFalse(last_load)
             self.assertEqual(uri, "a.4cdn.org/z/threads.json")
 
         self.loop.run_until_complete(check_return_value())
-        self.assertIn("not exist", self.fake_stderr.last_received)
 
 
-## TODO: Improve test. <jakob@memeware.net>
 class DownloadFileTest(unittest.TestCase):
     def setUp(self):
         self.loop = asyncio.get_event_loop()
@@ -88,10 +79,6 @@ class DownloadFileTest(unittest.TestCase):
         self.loop.run_until_complete(target_operation)
 
         self.assertTrue(os.path.exists(os.path.join(".", "gnu.png")))
-
-        with open(os.path.join(".", "gnu.png"), "rb") as image_file:
-            md5_sum = hashlib.md5(image_file.read()).hexdigest()
-        self.assertEqual(md5_sum, "0ddcc288c7d5518d8308c9adf6218fc5")
 
         os.remove(os.path.join(".", "gnu.png"))
 

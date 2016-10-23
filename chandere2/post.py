@@ -76,6 +76,19 @@ def filter_posts(content: dict, filters: list):
                 del content.get("posts")[index]
 
 
+## FIXME: Untested. <jakob@memeware.net>
+def cache_posts(content: dict, cache: list, imageboard: str):
+    """[Document me!]"""
+    context = CONTEXTS.get(imageboard)
+    no = context.get("post_fields")[0]
+
+    check_cached = lambda post: not post.get(no) in cache
+    content["posts"] = list(filter(check_cached, content.get("posts")))
+
+    for post in content.get("posts"):
+        cache.append(post.get(no))
+
+
 def unescape(text: str) -> str:
     """Replaces escaped HTML in some text with escape sequences."""
     for pattern, substitution in SUBSTITUTIONS:

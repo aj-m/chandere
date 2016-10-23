@@ -4,12 +4,12 @@ import unittest
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere2.post import (ascii_format_post, filter_posts, find_files,
-                            get_images, get_image_uri, get_threads, unescape)
+from chandere2.post import (ascii_format_post, cache_posts, filter_posts,
+                            find_files, get_images, get_image_uri,
+                            get_threads, unescape)
 from chandere2.validate import generate_uri
 
 
-## TODO: Test for contextual scraping. <jakob@memeware.net>
 class GetThreadsTest(unittest.TestCase):
     @hypothesis.given(st.integers(min_value=0), st.text())
     def test_get_threads(self, thread, board):
@@ -28,7 +28,6 @@ class GetThreadsTest(unittest.TestCase):
                          [generate_uri(board, str(thread), "lainchan")])
 
 
-## TODO: Test for contextual scraping. <jakob@memeware.net>
 class GetImagesTest(unittest.TestCase):
     @hypothesis.given(st.text(), st.text(), st.integers())
     def test_get_images(self, filename, extension, tim):
@@ -126,7 +125,7 @@ class FilterPostsTest(unittest.TestCase):
     # Regex characters are blacklisted to prevent false-negatives.
     @hypothesis.given(
         st.text(),
-        st.characters(blacklist_characters="*+?()[]|")
+        st.characters(blacklist_characters="*+?()[]|\\")
     )
     def test_match_filter(self, field, value):
         content = {"posts": [{field: value}]}
@@ -134,7 +133,65 @@ class FilterPostsTest(unittest.TestCase):
         self.assertEqual(content, {"posts": []})
 
 
-## TODO: Join substitutions rather than cherrypick. <jakob@memeware.net>
+class CachePostsTest(unittest.TestCase):
+    @hypothesis.given(st.integers())
+    def test_cache_posts(self, first_id):
+        # Hardcoded test for 4chan.
+        cache = []
+        content = {"posts": [{"no": first_id}]}
+
+        cache_posts(content, cache, "4chan")
+        self.assertEqual(content, {"posts": [{"no": first_id}]})
+        self.assertEqual(cache, [first_id])
+
+        # Hardcoded test for 8chan.
+        cache = []
+        content = {"posts": [{"no": first_id}]}
+
+        cache_posts(content, cache, "8chan")
+        self.assertEqual(content, {"posts": [{"no": first_id}]})
+        self.assertEqual(cache, [first_id])
+
+        # Hardcoded test for Lainchan.
+        cache = []
+        content = {"posts": [{"no": first_id}]}
+
+        cache_posts(content, cache, "lainchan")
+        self.assertEqual(content, {"posts": [{"no": first_id}]})
+        self.assertEqual(cache, [first_id])
+
+    @hypothesis.given(st.integers(), st.integers())
+    def test_remove_cached_posts(self, first_id, second_id):
+        # Following tests won't work if they're the same ID.
+        if first_id == second_id:
+            second_id += 1
+
+        # Hardcoded test for 4chan.
+        cache = [first_id]
+        content = {"posts": [{"no": first_id}, {"no": second_id}]}
+
+        cache_posts(content, cache, "4chan")
+        self.assertEqual(content, {"posts": [{"no": second_id}]})
+        self.assertEqual(cache, [first_id, second_id])
+
+        # Hardcoded test for 8chan.
+        cache = [first_id]
+        content = {"posts": [{"no": first_id}, {"no": second_id}]}
+
+        cache_posts(content, cache, "8chan")
+        self.assertEqual(content, {"posts": [{"no": second_id}]})
+        self.assertEqual(cache, [first_id, second_id])
+
+        # Hardcoded test for 8chan.
+        cache = [first_id]
+        content = {"posts": [{"no": first_id}, {"no": second_id}]}
+
+        cache_posts(content, cache, "lainchan")
+        self.assertEqual(content, {"posts": [{"no": second_id}]})
+        self.assertEqual(cache, [first_id, second_id])
+
+
+## TODO: Write a test to cover all patterns. <jakob@memeware.net>
 class UnescapeTest(unittest.TestCase):
     def test_unescape_text(self):
         text = "<p class=\"body-line empty \"></p>&amp;"
@@ -153,7 +210,7 @@ class AsciiFormatPostTest(unittest.TestCase):
         st.text()
     )
     def test_format_post(self, no, date, name, trip, sub, com, filename, ext):
-        # Hardcoded test for Vichan styled-imageboards.
+        # Hardcoded tests for vichan-styled imageboards.
         post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
                 "com": com, "filename": filename, "ext": ext}
         formatted = ascii_format_post(post, "4chan")

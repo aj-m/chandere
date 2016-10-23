@@ -1,12 +1,12 @@
-"""Subroutines for producing file output, as well as wrappers for giving
-detailed program feedback to the user.
-"""
+"""A more versatile wrapper for program output."""
 
 import sys
 
 
 class Console(object):
-    """Easy wrapper for sys.stdout, with debug functionality."""
+    """Versatile output wrapper. Writes to sys.stdout and sys.stderr by
+    default, but this can be changed via parameters to the constructor.
+    """
     def __init__(self, debug=False, output=sys.stdout, error=sys.stderr):
         self.debug = debug
         self.error = error

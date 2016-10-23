@@ -11,15 +11,15 @@ Chandere2 is free software, licensed under the [GNU General Public License.](htt
 
 
 Primary Features
-================
+----------------
 
-- **Scraping from multiple boards and threads simutaneously** **[Implemented]**
-- **Archiving to several formats, including SQLite and plaintext.** **[Implemented]**
-- **Post filtering with syntax similar to that of 4chan's.** **[Implemented/Basic]**
+- Scraping from multiple boards and threads simutaneously
+- Archiving to several formats, including SQLite and plaintext.
+- Post filtering with syntax similar to that of 4chan's.
 
 
 Installation
-============
+------------
 
 Currently, the most reliable way to install Chandere2 is through Pip.
 
@@ -34,7 +34,7 @@ Alternatively, setup.py in the repository's root directory can be used. Using Pi
 
 
 Tutorial
-========
+--------
 
 Chandere2 has several mode of operations. When no particular mode is specified, the default is to try to connect to the specified targets and print the response headers.
 
@@ -85,7 +85,7 @@ Options
 - **-i, --imageboard** - Specify the imageboard to connect to. Available aliases are listed with "--list-imageboards"
 - **-d, --download** - Crawl for and download all of the files in a board/thread.
 - **-a, --archive** - Crawl for and archive all of the posts in a board/thread.
-- **--filter** - A list of filters, following the format of [field]:[pattern] where [field] is the post field and [pattern] is a filtering pattern following 4chan's "Comment, Subject and E-mail filter" format.
+- **--filter** - A list of filters, following the format of [field]:[pattern] where [field] is the post field and [pattern] is a filtering pattern following 4chan's "Comment, Subject and E-mail filter" format. The pattern is case insensitive.
 - **--continuous** - Rather than quitting as soon as the task is done, Chandere2 will attempt to continuously refresh and check for new posts until a SIGINT is received.
 - **--ssl** - Use HTTPS if available.
 - **--nocap** - Will not attempt to limit the number of concurrent connections. This generates a very large amount of network traffic and will certainly hammer servers. Please only use this if you know what you're doing.
@@ -97,5 +97,5 @@ Options
 
 
 TODO
-====
+----
 [TODO](/TODO.md)

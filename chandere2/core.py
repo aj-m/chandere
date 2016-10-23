@@ -10,7 +10,7 @@ from chandere2.cli import PARSER
 from chandere2.connection import (download_file, fetch_uri,
                                   test_connection, wrap_semaphore)
 from chandere2.output import Console
-from chandere2.post import (find_files, filter_posts, get_threads)
+from chandere2.post import (cache_posts, find_files, filter_posts, get_threads)
 from chandere2.validate import (get_filters, get_path, get_targets)
 from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 
@@ -22,7 +22,10 @@ def main():
     args = PARSER.parse_args()
     output = Console(debug=args.debug)
 
-    target_uris = get_targets(args.targets, args.imageboard, output)
+    target_uris, failed = get_targets(args.targets, args.imageboard)
+
+    for pattern in failed:
+        output.write_error("Invalid target \"%s\"" % pattern)
 
     if not target_uris:
         output.write_error("No valid targets provided.")
@@ -66,21 +69,27 @@ async def main_loop(target_uris: dict, path: str, args, output):
     imageboard = args.imageboard
     create_archive(args.mode, args.output_format, path)
 
-    filters = get_filters(args.filters, imageboard, output) ##
+    filters, failed = get_filters(args.filters, imageboard)
+    for argument in failed:
+        output.write("Invalid filter pattern \"%s\"" % argument)
+
+    cache = []
 
     while True:
         iterations += 1
         operations = []
 
+        output.write_debug("Iteration %d." % iterations)
+
         if args.nocap:
             for uri in target_uris:
                 last_load = target_uris[uri][2]
-                operations.append(fetch_uri(uri, last_load, args.ssl, output))
+                operations.append(fetch_uri(uri, last_load, args.ssl))
         else:
             connection_cap = asyncio.Semaphore(MAX_CONNECTIONS)
             for uri in target_uris:
                 last_load = target_uris[uri][2]
-                target_operation = fetch_uri(uri, last_load, args.ssl, output)
+                target_operation = fetch_uri(uri, last_load, args.ssl)
                 wrapped = wrap_semaphore(target_operation, connection_cap)
                 operations.append(wrapped)
 
@@ -91,14 +100,19 @@ async def main_loop(target_uris: dict, path: str, args, output):
             output.write_debug("Connected to %s..." % uri)
 
             if error:
+                if error == 404:
+                    output.write_error("%s does not exist." % uri)
+                else:
+                    output.write_error("Could not connect to server.")
                 del target_uris[uri]
                 continue
 
             filter_posts(content, filters)
+            cache_posts(content, cache, imageboard)
 
             if thread and args.mode == "fd":
                 for image, filename in find_files(content, board, imageboard):
-                    output.write("Downloading %s..." % filename)
+                    output.write("Downloading \"%s\"..." % filename)
                     await download_file(image, path, filename, args.ssl)
 
             elif thread and args.mode == "ar":

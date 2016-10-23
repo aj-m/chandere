@@ -1,6 +1,6 @@
-"""A better file downloader and thread archiver for Futaba-styled
-imageboards, such as 4chan. Complete rewrite of Chandere 1.0 using
-asyncio and aiohttp. <http://tsar-fox.com/projects/chandere2>
+"""An asynchronous image/file downloader and thread archiver for
+Futaba-styled imageboards, such as 4chan and 8chan.
+<http://tsar-fox.com/projects/chandere2>
 """
 
 __author__ = "Jakob Tsar-Fox <jakob@memeware.net>"
