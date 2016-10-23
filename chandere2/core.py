@@ -1,5 +1,5 @@
-"""Core module and entry point to Chandere2, parses command-line
-arguments and handles the asynchronous event loop.
+"""Core module and entry point to Chandere2, vaildates command-line
+input and controls the asynchronous event loop.
 """
 
 import asyncio
@@ -7,8 +7,8 @@ import signal
 import sys
 
 from chandere2.cli import PARSER
-from chandere2.connection import (download_file, fetch_uri,
-                                  test_connection, wrap_semaphore)
+from chandere2.connection import (download_file, fetch_uri, test_connection,
+                                  wrap_semaphore)
 from chandere2.output import Console
 from chandere2.post import (cache_posts, find_files, filter_posts, get_threads)
 from chandere2.validate import (get_filters, get_path, get_targets)
@@ -23,19 +23,20 @@ def main():
     output = Console(debug=args.debug)
 
     target_uris, failed = get_targets(args.targets, args.imageboard)
-
     for pattern in failed:
         output.write_error("Invalid target \"%s\"" % pattern)
-
     if not target_uris:
         output.write_error("No valid targets provided.")
         sys.exit(1)
 
     path = get_path(args.output, args.mode, args.output_format)
-
     if path is None:
         output.write_error("The given output path cannot be written to.")
         sys.exit(1)
+
+    filters, failed = get_filters(args.filters, args.imageboard)
+    for argument in failed:
+        output.write_error("Invalid filter pattern \"%s\"" % argument)
 
     try:
         loop = asyncio.get_event_loop()
@@ -45,7 +46,8 @@ def main():
             target_operation = test_connection(target_uris, args.ssl, output)
             loop.run_until_complete(target_operation)
         else:
-            target_operation = main_loop(target_uris, path, args, output)
+            target_operation = main_loop(target_uris, path, filters,
+                                         args, output)
             loop.run_until_complete(target_operation)
     finally:
         loop.close()
@@ -59,19 +61,15 @@ def clean_up():
         task.cancel()
 
 
-async def main_loop(target_uris: dict, path: str, args, output):
+async def main_loop(target_uris: dict, path: str, filters: list, args, output):
     """Loop that continually iterates over targets, processing them
     respective to the mode of operation and stopping when finished.
     """
-    output.write_debug("Starting main loop...")
+    output.write_debug("Entering main loop")
 
     iterations = 0
     imageboard = args.imageboard
     create_archive(args.mode, args.output_format, path)
-
-    filters, failed = get_filters(args.filters, imageboard)
-    for argument in failed:
-        output.write("Invalid filter pattern \"%s\"" % argument)
 
     cache = []
 
@@ -126,8 +124,6 @@ async def main_loop(target_uris: dict, path: str, args, output):
 
             if last_load is not None:
                 target_uris[uri][2] = last_load
-            else:
-                target_uris[uri][2] = "Loaded"
 
         if args.continuous:
             pass

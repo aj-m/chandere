@@ -6,6 +6,8 @@ import urllib.parse
 
 from chandere2.context import CONTEXTS
 
+REGEX_SPECIAL = ".?+()[]/\\"
+
 
 def get_path(path: str, mode: str, output_format: str) -> str:
     """Validates the given output path, ensuring that the user has
@@ -78,12 +80,12 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
     return uri
 
 
-## TODO: Redocument. <jakob@memeware.net>
 def get_targets(targets: list, imageboard: str) -> tuple:
     """Strips the list of given target strings, creating and returning
-    a dictionary where the URI for each target points to a list
-    containing the board, whether or not the target refers to a thread,
-    and a space to hold the HTTP Last-Modified header.
+    a tuple with a dictionary where the URI for each target points to a
+    list containing the board, whether or not the target refers to a
+    thread, and a space to hold the HTTP Last-Modified header, and any
+    failed target strings.
     """
     target_uris = {}
     failed = []
@@ -129,6 +131,8 @@ def convert_to_regexp(pattern: str) -> str:
             pattern += subpattern[1:-1]
 
         else:
+            for character in REGEX_SPECIAL:
+                subpattern = subpattern.replace(character, "\\" + character)
             subpattern = re.sub(r"\*(\s|$)", ".*", subpattern)
             subpattern = re.sub(r"\*(?=\w)", ".", subpattern)
             pattern += subpattern
@@ -141,11 +145,9 @@ def split_pattern(pattern: str) -> iter:
     4chan's "and operator" and "exact match" syntax.
     """
     while True:
-        # Look for the first exact-match subpattern.
+        # Find any exact-match subpatterns.
         regexp = re.search(r"\".*\"", pattern)
 
-        # If no exact-match subpatterns are found,
-        # parse any potential and operators and exit.
         if not regexp:
             if " " in pattern.strip():
                 for subpattern in pattern.split():
@@ -153,17 +155,15 @@ def split_pattern(pattern: str) -> iter:
             elif pattern.strip():
                 yield pattern.strip()
 
-            # An empty string is used as a sentinel value.
+            # The empty string is used as a sentinel value.
             pattern = ""
             break
 
         # Ensure that the exact match isn't empty.
         if not re.search(r"^\"\s*\"$", regexp.group().strip()):
             yield pattern[regexp.start():regexp.end()][1:-1].strip()
-
         pattern = pattern[:regexp.start()] + pattern[regexp.end():]
 
-    # If there's anything left, yield it.
     if pattern.strip():
         yield pattern.strip()
 

@@ -72,7 +72,7 @@ def filter_posts(content: dict, filters: list):
     """
     for index, post in enumerate(content.get("posts", [])):
         for field, pattern in filters:
-            if re.search(pattern, post.get(field)):
+            if re.search(pattern, str(post.get(field))):
                 del content.get("posts")[index]
 
 
