@@ -1,0 +1,63 @@
+.TH Chandere2 1 "" "Chandere2 2.2.0"
+
+.SH NAME
+Chandere2 - An asynchronous image/file downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
+
+.SH SYNOPSIS
+chandere2 (
+.I TARGETS
+) [ -i
+.I ALIAS
+] [
+.I OPTIONS
+]
+.PP
+.I TARGETS
+can be as many board initial/thread number combinations as desired.
+.I ALIAS
+is any of the imageboard aliases listed by --list-imageboards.
+
+.SH DESCRIPTION
+Chandere2 is a command-line utility for automatically downloading and archiving data from Futaba-styled imageboards. It aims to be fairly universal and easy to use.
+.PP
+It features scraping from multiple boards and threads simutaneously, archiving to several formats, and advanced post filtering.
+
+.SH OPTIONS
+SCRAPING OPTIONS
+.PP
+.IP "-i, --imageboard <ALIAS>"
+Used to designate the imageboard to be scraped from. Available aliases can be listed with --list-imageboards.
+.IP "-d, --download"
+Crawl for and download every file in the given targets.
+.IP "-a, --archive"
+Archive every post in the given targets.
+.IP "--filter <FILTERS>"
+A list of filters to check posts against. Filters should follow the pattern of [field]:[pattern], where [field] is the post field and [pattern] is a filtering patter following 4chan's 'Comment, Subject and E-mail' filter format. Patterns are case insensitive, and multiple filters can be given.
+.IP "--continuous"
+Rather than exiting as soon as the task has completed, continue to refresh for new posts until a SIGINT is received.
+.IP "--ssl"
+Uses TLS/SSL encryption when making connections with the imageboard.
+.IP "--nocap"
+Will not attempt to limit the number of concurrent connections. This can generate unreasonable amounts of traffic and should only be used if you know what you're doing.
+.PP
+OUTPUT OPTIONS
+.IP "--debug"
+Provides more detailed runtime information.
+.IP "-o <PATH>, --output <PATH>"
+Indicates the path in which downloaded files should be placed. Defaults to the current working directory.
+.IP "--output-format <FORMAT>"
+Specify the format that archives should be saved to. Can be either 'plaintext' or 'sqlite'.
+GENERAL OPTIONS
+.IP "-h, --help"
+Display a help page and exit.
+.IP "-v, --version"
+Display the currently installed version and exit.
+.IP "--list-imageboards"
+List all of the available imageboard aliases and exit.
+
+.SH BUGS
+Chandere2 is carefully tested for bugs before a major release, but if you happen to find one - please submit bug reports to <jakob@memeware.net> or visit https://github.com/TsarFox/chandere2/issues
+
+.SH AUTHOR
+
+Chandere2 is programmed and maintained by Jakob Tsar-Fox. <jakob@memeware.net>

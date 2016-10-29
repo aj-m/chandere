@@ -1,6 +1,5 @@
 import os
 import re
-import unittest
 import urllib.parse
 
 import hypothesis
@@ -11,44 +10,59 @@ from chandere2.validate import (convert_to_regexp, generate_uri,
                                 split_pattern, strip_target)
 
 
-class GetPathTest(unittest.TestCase):
+class TestGetPath:
+    # Asserts that write permissions are properly checked.
     # Expected permissions for the root directory and the CWD are not
     # hardcoded, as the permissions may vary on other machines.
     def test_check_output_permissions(self):
-        self.assertEqual(os.access("/", os.W_OK), bool(get_path("/", "", "")))
-        self.assertEqual(os.access(".", os.W_OK), bool(get_path(".", "", "")))
-        self.assertEqual(os.access("/etc/hosts", os.W_OK),
-                         bool(get_path("/etc/hosts", "", "")))
+        access = bool(get_path("/", "", ""))
+        assert os.access("/", os.W_OK) == access
+
+        access = bool(get_path(".", "", ""))
+        assert os.access(".", os.W_OK) == access
+
+        access = bool(get_path("/etc/hosts", "", ""))
+        assert os.access("/etc/hosts", os.W_OK) == access
 
     # The following tests, however, assume that the CWD is writeable.
+
+    # Asserts that the CWD is okay for file downloading,
+    # and that a file is not.
     def test_directory_for_file_downloading(self):
-        self.assertEqual(get_path(".", "fd", ""), ".")
-        self.assertIs(get_path("./a_file.txt", "fd", ""), None)
+        assert get_path(".", "fd", "") == "."
+        assert get_path("./a_file.txt", "fd", "") is None
 
+    # Asserts that files are accepted for archiving, and that a
+    # filename is appended if a directory is given.
     def test_file_for_thread_archiving(self):
-        self.assertEqual(get_path(".", "ar", "sqlite"), "./archive.db")
-        self.assertEqual(get_path("./file.txt", "ar", ""), "./file.txt")
-        self.assertEqual(get_path(".", "ar", ""), "./archive.txt")
+        assert get_path("./file.txt", "ar", "") == "./file.txt"
+        assert get_path(".", "ar", "sqlite") == "./archive.db"
+        assert get_path(".", "ar", "") == "./archive.txt"
 
 
-class GenerateUriTest(unittest.TestCase):
+class TestGenerateUri:
+    # Asserts that the board initial and "threads.json" are in the URI.
     @hypothesis.given(st.text())
     def test_create_url_with_board(self, board):
         uri = generate_uri(board, None)
-        self.assertIn(board, uri)
-        self.assertIn("threads.json", uri)
+        assert board in uri
+        assert "threads.json" in uri
 
+    # Asserts that the board and thread are in the URI,
+    # and that "threads.json" is not.
     @hypothesis.given(st.text(), st.integers(min_value=0))
     def test_create_url_with_thread(self, board, thread):
         uri = generate_uri(board, str(thread))
-        self.assertIn("/".join((board, "thread", str(thread))), uri)
-        self.assertNotIn("threads.json", uri)
+        assert "/".join((board, "thread", str(thread))) in uri
+        assert "threads.json" not in uri
 
+    # Asserts that a proper imageboard must be given.
     def test_fail_on_unknown_imageboard(self):
-        self.assertIs(generate_uri("g", "", imageboard="krautchan"), None)
+        assert generate_uri("g", "", imageboard="krautchan") is None
 
 
-class StripTargetTest(unittest.TestCase):
+class TestStripTarget:
+    # Asserts that a board on its own is properly stripped.
     @hypothesis.given(st.characters(blacklist_characters="/"))
     def test_strip_bare_board(self, target):
         expected_board = urllib.parse.quote(target.strip("/"), safe="/ ",
@@ -57,11 +71,12 @@ class StripTargetTest(unittest.TestCase):
         if not re.search(r"[^\s\/]", expected_board):
             expected_board = None
 
-        self.assertEqual(strip_target(target), (expected_board, None))
-        self.assertEqual(strip_target("/%s" % target), (expected_board, None))
-        self.assertEqual(strip_target("%s/" % target), (expected_board, None))
-        self.assertEqual(strip_target("/%s/" % target), (expected_board, None))
+        assert strip_target(target) == (expected_board, None)
+        assert strip_target("/%s" % target) == (expected_board, None)
+        assert strip_target("%s/" % target) == (expected_board, None)
+        assert strip_target("/%s/" % target) == (expected_board, None)
 
+    # Asserts that a board and thread can be stripped.
     @hypothesis.given(st.characters(blacklist_characters="/"),
                       st.integers(min_value=0))
     def test_strip_board_with_thread(self, target_board, target_thread):
@@ -76,14 +91,15 @@ class StripTargetTest(unittest.TestCase):
             expected_thread = None
 
         target = "/".join((target_board, str(target_thread)))
-        self.assertEqual(strip_target(target),
-                         (expected_board, expected_thread))
+        assert strip_target(target) == (expected_board, expected_thread)
 
 
-class GetTargetsTest(unittest.TestCase):
+class TestGetTargets:
+    # Asserts that a board initial is properly handled.
     @hypothesis.given(st.characters(blacklist_characters="/ "))
     def test_get_single_board(self, board):
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
+
         # Hardcoded test for 4chan.
         if not escaped and not re.search(r"[^\s\/]", escaped):
             expected_result = {}
@@ -94,8 +110,8 @@ class GetTargetsTest(unittest.TestCase):
             expected_failed = []
 
         parsed, failed = get_targets([board], "4chan")
-        self.assertEqual(parsed, expected_result)
-        self.assertEqual(failed, expected_failed)
+        assert parsed == expected_result
+        assert failed == expected_failed
 
         # Hardcoded test for 8chan.
         if expected_result:
@@ -103,8 +119,8 @@ class GetTargetsTest(unittest.TestCase):
             expected_result = {expected_uri: [escaped, False, ""]}
 
         parsed, failed = get_targets([board], "8chan")
-        self.assertEqual(parsed, expected_result)
-        self.assertEqual(failed, expected_failed)
+        assert parsed == expected_result
+        assert failed == expected_failed
 
         # Hardcoded test for Lainchan.
         if expected_result:
@@ -112,10 +128,10 @@ class GetTargetsTest(unittest.TestCase):
             expected_result = {expected_uri: [escaped, False, ""]}
 
         parsed, failed = get_targets([board], "lainchan")
-        self.assertEqual(parsed, expected_result)
-        self.assertEqual(failed, expected_failed)
+        assert parsed == expected_result
+        assert failed == expected_failed
 
-
+    # Asserts that a board and thread are proprely handled.
     @hypothesis.given(st.characters(blacklist_characters="/"),
                       st.integers(min_value=0))
     def test_get_board_and_thread(self, board, thread):
@@ -131,8 +147,8 @@ class GetTargetsTest(unittest.TestCase):
             expected_result = {expected_uri: [escaped, True, ""]}
 
         parsed, failed = get_targets([target], "4chan")
-        self.assertEqual(parsed, expected_result)
-        self.assertFalse(failed)
+        assert parsed == expected_result
+        assert not failed
 
         # Hardcoded tests for 8chan.
         target = "/".join((board, str(thread)))
@@ -146,8 +162,8 @@ class GetTargetsTest(unittest.TestCase):
             expected_result = {expected_uri: [escaped, True, ""]}
 
         parsed, failed = get_targets([target], "8chan")
-        self.assertEqual(parsed, expected_result)
-        self.assertFalse(failed)
+        assert parsed == expected_result
+        assert not failed
 
         # Hardcoded tests for Lainchan.
         target = "/".join((board, str(thread)))
@@ -161,53 +177,61 @@ class GetTargetsTest(unittest.TestCase):
             expected_result = {expected_uri: [escaped, True, ""]}
 
         parsed, failed = get_targets([target], "lainchan")
-        self.assertEqual(parsed, expected_result)
-        self.assertFalse(failed)
+        assert parsed == expected_result
+        assert not failed
 
+    # Asserts failure when a board is omitted.
     def test_fail_invalid_target(self):
         # Hardcoded test for 4chan.
         parsed, failed = get_targets(["/"], "4chan")
-        self.assertFalse(parsed)
-        self.assertIn("/", failed)
+        assert not parsed
+        assert "/" in failed
 
         # Hardcoded test for 8chan.
         parsed, failed = get_targets(["/"], "8chan")
-        self.assertFalse(parsed)
-        self.assertIn("/", failed)
+        assert not parsed
+        assert "/" in failed
 
         # Hardcoded test for Lainchan.
         parsed, failed = get_targets(["/"], "lainchan")
-        self.assertFalse(parsed)
-        self.assertIn("/", failed)
+        assert not parsed
+        assert "/" in failed
 
 
-class ConvertToRegexpTest(unittest.TestCase):
+class TestConvertToRegexp:
+    # Asserts that explicitly listed regular expressions are untouched.
     @hypothesis.given(st.characters(blacklist_characters="\n.?*+()[]\\/"))
     def test_ignore_expicit_regex(self, pattern):
-        self.assertEqual(convert_to_regexp("/%s/" % pattern), pattern)
-        self.assertEqual(convert_to_regexp("%s/%s/" % (pattern, pattern)),
-                                           "%s%s" % (pattern, pattern))
-        self.assertEqual(convert_to_regexp("/%s/%s" % (pattern, pattern)),
-                                           "%s%s" % (pattern, pattern))
+        parsed = convert_to_regexp("/%s/" % pattern)
+        assert parsed == pattern
 
+        parsed = convert_to_regexp("%s/%s/" % (pattern, pattern))
+        assert parsed == "%s%s" % (pattern, pattern)
+
+        parsed = convert_to_regexp("/%s/%s" % (pattern, pattern))
+        assert parsed == "%s%s" % (pattern, pattern)
+
+    # Asserts that regex special characters are escaped.
     @hypothesis.given(st.characters(blacklist_characters="\n*"))
     def test_escape_patterns(self, pattern):
         expected = pattern
         for character in ".?+()[]/\\":
             expected = expected.replace(character, "\\" + character)
 
-        self.assertEqual(convert_to_regexp(pattern), expected)
+        assert convert_to_regexp(pattern) == expected
 
+    # Asserts that wildcards are properly replaced
     @hypothesis.given(st.characters(blacklist_characters="\n.?+()[]\\/"))
-    def test_escape_patterns(self, pattern):
+    def test_replace_wildcards(self, pattern):
         expected = re.sub(r"\*(\s|$)", ".*", pattern)
         expected = re.sub(r"\*(?=\w)", ".", expected)
 
-        self.assertEqual(convert_to_regexp(pattern), expected)
+        assert convert_to_regexp(pattern) == expected
 
 
 ## TODO: Write a test for yielding final part. <jakob@memeware.net>
-class SplitPatternTest(unittest.TestCase):
+class TestSplitPattern:
+    # Asserts that whitespace is properly handled.
     @hypothesis.given(
         st.lists(
             elements=st.characters(blacklist_characters="\"")
@@ -215,9 +239,9 @@ class SplitPatternTest(unittest.TestCase):
     )
     def test_use_and_operator(self, pattern):
         expected = list(filter(lambda x: x.strip(), pattern))
-        self.assertEqual(list(split_pattern(" ".join(pattern))), expected)
+        assert list(split_pattern(" ".join(pattern))) == expected
 
-    ## TODO: Clean up. <jakob@memeware.net>
+    # Asserts that exact matches are untouched.
     @hypothesis.given(
         st.lists(
             elements=st.characters(blacklist_characters="\"\n")
@@ -240,10 +264,11 @@ class SplitPatternTest(unittest.TestCase):
 
         expected = filter(lambda x: not re.search(r"^\s*$", x), expected)
 
-        self.assertEqual(sorted(list(split_pattern(pattern))), sorted(expected))
+        assert sorted(list(split_pattern(pattern))) == sorted(expected)
 
 
-class GetFiltersTest(unittest.TestCase):
+class TestGetFilters:
+    # Asserts that filters are properly processed.
     @hypothesis.given(st.characters(blacklist_characters=":"),
                       st.characters(blacklist_characters=":"))
     def test_evaluate_filters(self, field, pattern):
@@ -253,13 +278,13 @@ class GetFiltersTest(unittest.TestCase):
         # Imageboard is unimportant to the subroutine at this point.
         evaluated, failed = get_filters([":".join((field, pattern))], "4chan")
         evaluated_field, evaluated_pattern = evaluated[0]
-        self.assertEqual(evaluated_field, field)
-        self.assertEqual(evaluated_pattern, convert_to_regexp(pattern))
-        self.assertFalse(failed)
+        assert evaluated_field == field
+        assert evaluated_pattern == convert_to_regexp(pattern)
+        assert not failed
 
+    # Asserts that failed patterns are properly returned.
     @hypothesis.given(st.characters(blacklist_characters=":"))
     def test_evaluate_failed(self, pattern):
-        # Imageboard is unimportant to the subroutine at this point.
         evaluated, failed = get_filters([pattern], "4chan")
-        self.assertFalse(evaluated)
-        self.assertEqual(failed, [pattern])
+        assert not evaluated
+        assert failed == [pattern]

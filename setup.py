@@ -28,7 +28,7 @@ setup(
     include_package_data=True,
     install_requires=["aiohttp"],
     extras_require={},
-    tests_require=["tox", "mock", "hypothesis"],
+    tests_require=["pytest", "tox", "hypothesis"],
     entry_points={"console_scripts": ["chandere2 = chandere2.core:main"]},
     keywords="downloader archiver imageboard",
     classifiers=[

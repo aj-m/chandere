@@ -133,13 +133,13 @@ OUTPUT_OPTIONS.add_argument(
     "--output",
     metavar="DIR",
     default=".",
-    help="Indicates the path in which downloaded filess or\narchives should "
-    "be placed. Defaults to \"./\".\n\n"
+    help="Indicates the path in which downloaded files or\narchives should "
+    "be placed. Defaults to the current\nworking directory.\n\n"
 )
 OUTPUT_OPTIONS.add_argument(
     "--output-format",
     metavar="FMT",
     default="ascii",
-    help="Specify the format that output should be put into. Can\nbe either "
+    help="Specify the format that archives should be saved to. Can\nbe either "
     "\"plaintext\" or \"sqlite\"."
 )

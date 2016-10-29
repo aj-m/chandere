@@ -73,29 +73,6 @@ Post filtering is by far the least intuitive feature to use, though it should fe
 While filter patterns can be as simple as the md5sum in the example above, there are several features to make filtering more useful. When several words or phrases are joined with spaces, the filtering engine will check to see if the pattern occurs in any order. Double quotes can be used to force the order of a match; for example, '--filter com:"that feel when"' will not filter "when that feel" in a comment body. Regular expressions can be used as long as the regexp is enclosed in forward slashes.
 
 
-Options
--------
-**Documentation**
-- **-h, --help** - Display a list of available command-line arguments.
-- **-v, --version** - Display the current version of Chandere2.
-- **--list-imageboards** - List the available imageboard aliases.
-
-**Scraping**
-- **targets** - Pairs of a board and optionally a thread ID to connect to. If a thread is not specified, Chandere2 will attempt to scrape the entire board.
-- **-i, --imageboard** - Specify the imageboard to connect to. Available aliases are listed with "--list-imageboards"
-- **-d, --download** - Crawl for and download all of the files in a board/thread.
-- **-a, --archive** - Crawl for and archive all of the posts in a board/thread.
-- **--filter** - A list of filters, following the format of [field]:[pattern] where [field] is the post field and [pattern] is a filtering pattern following 4chan's "Comment, Subject and E-mail filter" format. The pattern is case insensitive.
-- **--continuous** - Rather than quitting as soon as the task is done, Chandere2 will attempt to continuously refresh and check for new posts until a SIGINT is received.
-- **--ssl** - Use HTTPS if available.
-- **--nocap** - Will not attempt to limit the number of concurrent connections. This generates a very large amount of network traffic and will certainly hammer servers. Please only use this if you know what you're doing.
-
-**Output**
-- **--debug** - Indicates that every log message should be shown during runtime. This is helpful when opening a bug report.
-- **-o, --output** - Designates the output directory if operating in File Downloading mode, or the file to output to if operating in Archiving mode. Defaults to the current working directory.
-- **--output-format** - Specify the format that output should be put into. Can be either "plaintext" or "sqlite". The default is plaintext.
-
-
 TODO
 ----
 [TODO](/TODO.md)

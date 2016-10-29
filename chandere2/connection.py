@@ -7,7 +7,7 @@ import aiohttp
 HEADERS = {"user-agent": "Chandere/2.1"}
 
 
-async def test_connection(target_uris: dict, use_ssl: bool, output):
+async def try_connection(target_uris: dict, use_ssl: bool, output):
     """Attempts connections to each of the given URIs, writing the
     response headers or status code to the designated output.
     """

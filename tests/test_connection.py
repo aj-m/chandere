@@ -1,118 +1,125 @@
-## Tests assume that a connection to 4chan can be made.
+## Tests assume that an internet connection is available.
 
 import asyncio
 import os
-import unittest
 
-from chandere2.connection import (download_file, fetch_uri,
-                                  test_connection, wrap_semaphore)
+from chandere2.connection import (download_file, fetch_uri, try_connection, wrap_semaphore)
 from chandere2.output import Console
 
-from tests.dummy_output import FakeOutput
+from dummy_output import FakeOutput
 
 
-class TestConnectionTest(unittest.TestCase):
-    def setUp(self):
-        self.loop = asyncio.get_event_loop()
-
-        self.fake_stdout = FakeOutput()
-        self.fake_stderr = FakeOutput()
-        self.fake_output = Console(output=self.fake_stdout,
-                                   error=self.fake_stderr)
-
+class TestTryConnection:
+    # Test asserts that HTTP headers are written to stdout.
     def test_report_successful_connection(self):
+        fake_stdout = FakeOutput()
+        fake_stderr = FakeOutput()
+        fake_output = Console(output=fake_stdout, error=fake_stderr)
+
+        loop = asyncio.get_event_loop()
+
         target_uris = ["a.4cdn.org/g/threads.json"]
-        target_operation = test_connection(target_uris, False,
-                                           self.fake_output)
+        target_operation = try_connection(target_uris, False, fake_output)
 
-        self.loop.run_until_complete(target_operation)
+        loop.run_until_complete(target_operation)
+        assert ">" in fake_stdout.last_received
 
-        self.assertIn(">", self.fake_stdout.last_received)
-
+    # Test asserts that "FAILED" is written to stderr.
     def test_report_failed_connection(self):
+        fake_stdout = FakeOutput()
+        fake_stderr = FakeOutput()
+        fake_output = Console(output=fake_stdout, error=fake_stderr)
+
+        loop = asyncio.get_event_loop()
+
         target_uris = ["a.4cdn.org/z/threads.json"]
-        target_operation = test_connection(target_uris, False,
-                                           self.fake_output)
+        target_operation = try_connection(target_uris, False, fake_output)
 
-        self.loop.run_until_complete(target_operation)
-
-        self.assertIn("FAILED", self.fake_stderr.last_received)
+        loop.run_until_complete(target_operation)
+        assert "FAILED" in fake_stderr.last_received
 
 
-## TODO: Write a test for HTTP/304 handling. <jakob@memeware.net>
-class FetchUriTest(unittest.TestCase):
-    def setUp(self):
-        self.loop = asyncio.get_event_loop()
-
-    def test_yield_successful_connection(self):
+class TestFetchUri:
+    # Asserts that a proper connection was made and returned.
+    def test_fetch_uri_successfully(self):
+        loop = asyncio.get_event_loop()
         target_operation = fetch_uri("a.4cdn.org/g/threads.json", "", False)
 
         async def check_return_value():
             content, error, last_load, uri = await target_operation
-            self.assertIsNotNone(content)
-            self.assertFalse(error)
-            self.assertTrue(last_load)
-            self.assertEqual(uri, "a.4cdn.org/g/threads.json")
+            assert content is not None
+            assert not error
+            assert last_load
+            assert uri == "a.4cdn.org/g/threads.json"
 
-        self.loop.run_until_complete(check_return_value())
+        loop.run_until_complete(check_return_value())
 
+    # Asserts that a connection wasn't made and was properly handled.
     def test_error_on_failed_connection(self):
+        loop = asyncio.get_event_loop()
         target_operation = fetch_uri("a.4cdn.org/z/threads.json", "", False)
 
         async def check_return_value():
             content, error, last_load, uri = await target_operation
-            self.assertIsNone(content)
-            self.assertEqual(error, 404)
-            self.assertFalse(last_load)
-            self.assertEqual(uri, "a.4cdn.org/z/threads.json")
+            assert content is None
+            assert error == 404
+            assert not last_load
+            assert uri == "a.4cdn.org/z/threads.json"
 
-        self.loop.run_until_complete(check_return_value())
+        loop.run_until_complete(check_return_value())
 
 
-class DownloadFileTest(unittest.TestCase):
-    def setUp(self):
-        self.loop = asyncio.get_event_loop()
-
+class TestDownloadFile:
+    # Asserts that a file was created, implying successful connection.
     def test_successful_image_download(self):
+        loop = asyncio.get_event_loop()
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
         target_operation = download_file(target_uri, ".", "gnu.png", False)
-        self.loop.run_until_complete(target_operation)
 
-        self.assertTrue(os.path.exists(os.path.join(".", "gnu.png")))
+        loop.run_until_complete(target_operation)
 
-        os.remove(os.path.join(".", "gnu.png"))
+        assert os.path.exists("gnu.png")
 
+        os.remove("gnu.png")
+
+    # Asserts that the file does not exist, implying a failed connection.
     def test_failed_image_download(self):
+        loop = asyncio.get_event_loop()
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.gif"
         target_operation = download_file(target_uri, ".", "gnu.gif", False)
-        self.loop.run_until_complete(target_operation)
 
-        self.assertFalse(os.path.exists(os.path.join(".", "gnu.gif")))
+        loop.run_until_complete(target_operation)
 
+        assert not os.path.exists("gnu.gif")
+
+    # Asserts that each time a file is downloaded,
+    # "(Copy) " is prepended to the filename
     def test_prepend_copy(self):
+        loop = asyncio.get_event_loop()
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
-        target_operation = download_file(target_uri, ".", "gnu.png", False)
-        self.loop.run_until_complete(target_operation)
 
-        target_operation = download_file(target_uri, ".", "gnu.png", False)
-        self.loop.run_until_complete(target_operation)
+        for _ in range(3):
+            target_operation = download_file(target_uri, ".", "gnu.png", False)
+            loop.run_until_complete(target_operation)
 
-        self.assertTrue(os.path.exists(os.path.join(".", "gnu.png")))
-        self.assertTrue(os.path.exists(os.path.join(".", "(Copy) gnu.png")))
+        assert os.path.exists("gnu.png")
+        assert os.path.exists("(Copy) gnu.png")
+        assert os.path.exists("(Copy) (Copy) gnu.png")
 
-        os.remove(os.path.join(".", "gnu.png"))
-        os.remove(os.path.join(".", "(Copy) gnu.png"))
+        os.remove("gnu.png")
+        os.remove("(Copy) gnu.png")
+        os.remove("(Copy) (Copy) gnu.png")
 
 
 ## FIXME: Doesn't test for semaphore's presence. <jakob@memeware.net>
-class WrapSemaphoreTest(unittest.TestCase):
-    def setUp(self):
-        self.loop = asyncio.get_event_loop()
-
+class TestWrapSemaphore:
+    # Asserts that the coroutine returned runs normally.
     def test_wrap_semaphore(self):
+        loop = asyncio.get_event_loop()
+
         async def dummy_coroutine():
             return True
 
         semaphore = asyncio.Semaphore(1)
         coroutine = wrap_semaphore(dummy_coroutine(), semaphore)
-        self.assertTrue(self.loop.run_until_complete(coroutine))
+        assert loop.run_until_complete(coroutine)

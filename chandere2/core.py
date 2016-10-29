@@ -7,7 +7,7 @@ import signal
 import sys
 
 from chandere2.cli import PARSER
-from chandere2.connection import (download_file, fetch_uri, test_connection,
+from chandere2.connection import (download_file, fetch_uri, try_connection,
                                   wrap_semaphore)
 from chandere2.output import Console
 from chandere2.post import (cache_posts, find_files, filter_posts, get_threads)
@@ -43,7 +43,7 @@ def main():
         loop.add_signal_handler(signal.SIGINT, clean_up)
 
         if args.mode is None:
-            target_operation = test_connection(target_uris, args.ssl, output)
+            target_operation = try_connection(target_uris, args.ssl, output)
             loop.run_until_complete(target_operation)
         else:
             target_operation = main_loop(target_uris, path, filters,

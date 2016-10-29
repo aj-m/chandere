@@ -127,7 +127,7 @@ def convert_to_regexp(pattern: str) -> str:
     # Turn wildcards into an appropriate regex substitution if and only
     # if the subpattern is not already a regular expression.
     for subpattern in subpatterns:
-        if subpattern.startswith("/") and subpattern.endswith("/"):
+        if re.search(r"\/.+\/", subpattern):
             pattern += subpattern[1:-1]
 
         else:

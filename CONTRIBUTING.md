@@ -15,7 +15,7 @@ Your code should follow [PEP 8 Guidelines](https://www.python.org/dev/peps/pep-0
 
 The code does not aim for any compatibility with Python <= 3.4, so please make use of Python 3.5 features such as type hinting and async/await syntax.
 
-Tests can be run from the repository's root directory with Tox. Please write tests for any code that you submit.
+Tests can be run from the repository's root directory with "make test". Contributions should have proper unittests.
 
 Also, feel free to add yourself to the AUTHORS.md file.
 
