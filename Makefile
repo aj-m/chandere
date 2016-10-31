@@ -1,10 +1,10 @@
 DOCPATH = docs
 
-.PHONY: test man rmman doc
+.PHONY: test doc
 
 # Tests
 test:
-	PYTHONPATH=. pytest -v tests/test_*.py
+	PYTHONPATH=. python -m pytest -v tests/test_*.py
 
 
 # Manpage compression
