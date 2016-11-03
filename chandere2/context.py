@@ -3,6 +3,9 @@
 VICHAN_IMAGE_FIELDS = ("filename", "tim", "ext", "extra_files")
 VICHAN_POST_FIELDS = ("no", "time", "name", "trip",
                       "sub", "com", "filename", "ext")
+LYNXCHAN_IMAGE_FIELDS = ("originalName", "path", None, "files")
+LYNXCHAN_POST_FIELDS = ("threadId", "creation", "name", "id", "subject",
+                        "markdown", "originalName", None)
 
 CONTEXTS = {
     "4chan": {"uri": "a.4cdn.org",
@@ -32,6 +35,15 @@ CONTEXTS = {
                "image_fields": VICHAN_IMAGE_FIELDS,
                "post_fields": VICHAN_POST_FIELDS,
                "reply_field": None},
+    "endchan": {"uri": "endchan.xyz",
+                "threads_endpoint": "catalog.json",
+                "image_uri": "endchan.xyz",
+                "image_dir": ".media",
+                "board_in_image_uri": False,
+                "delimiter": "res",
+                "image_fields": LYNXCHAN_IMAGE_FIELDS,
+                "post_fields": LYNXCHAN_POST_FIELDS,
+                "reply_field": None},
     "lainchan": {"uri": "lainchan.org",
                  "threads_endpoint": "threads.json",
                  "image_uri": "lainchan.org",

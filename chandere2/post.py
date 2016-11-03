@@ -14,13 +14,38 @@ SUBSTITUTIONS = ((r'<p class="body-line empty "><\/p>', "\n\n"),
                  (r"\\/", "/"))
 
 
-def get_threads(content: list, board: str, imageboard: str):
-    """Generator that iterates through the content of a threads.json
-    output, creating and yielding a URI for every thread seen.
+def get_threads_from_endpoint(content: list, board: str, imageboard: str):
+    """Typical thread parsing function for imageboards that supply a
+    plain threads.json endpoint.
     """
     for thread in sum([page.get("threads") for page in content], []):
         thread_no = str(thread.get("no"))
         yield generate_uri(board, thread_no, imageboard)
+
+
+def get_threads_from_catalog(content: list, board: str, imageboard: str):
+    """Alternative thread parsing function for imageboards that do not
+    offer a threads.json endpoint.
+    """
+    context = CONTEXTS.get(imageboard)
+    no = context.get("post_fields")[0]
+    for thread in content:
+        thread_no = str(thread.get(no))
+        yield generate_uri(board, thread_no, imageboard)
+
+
+def get_threads(content: list, board: str, imageboard: str):
+    """Generator that iterates through the content of a threads
+    endpoint, creating and yielding a URI for every thread seen.
+    Chooses the method that is appropriate for the given imageboard.
+    """
+    context = CONTEXTS.get(imageboard)
+    endpoint = context.get("threads_endpoint")
+    if endpoint == "threads.json":
+        generator = get_threads_from_endpoint(content, board, imageboard)
+    else:
+        generator = get_threads_from_catalog(content, board, imageboard)
+    return generator
 
 
 def get_images(post: dict, imageboard: str) -> list:

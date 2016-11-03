@@ -1,33 +1,57 @@
 import time
+import types
 
 import hypothesis
 import hypothesis.strategies as st
 
+from chandere2.context import CONTEXTS
 from chandere2.post import (ascii_format_post, cache_posts, filter_posts,
                             find_files, get_images, get_image_uri,
-                            get_threads, unescape)
+                            get_threads, get_threads_from_catalog,
+                            get_threads_from_endpoint, unescape)
 from chandere2.validate import generate_uri
 
 
 # Asserts that a list of thread URIs is returned.
 @hypothesis.given(st.integers(min_value=0), st.text())
-def test_get_threads(thread, board):
+def test_get_threads_from_endpoint(thread, board):
     content = [{"page": 1, "threads": [{"no": thread}]}]
 
     # Hardcoded test for 4chan.
-    threads = list(get_threads(content, board, "4chan"))
+    threads = list(get_threads_from_endpoint(content, board, "4chan"))
     expected = [generate_uri(board, str(thread), "4chan")]
     assert threads == expected
 
     # Hardcoded test for 8chan.
-    threads = list(get_threads(content, board, "8chan"))
+    threads = list(get_threads_from_endpoint(content, board, "8chan"))
     expected = [generate_uri(board, str(thread), "8chan")]
     assert threads == expected
 
     # Hardcoded test for Lainchan.
-    threads = list(get_threads(content, board, "lainchan"))
+    threads = list(get_threads_from_endpoint(content, board, "lainchan"))
     expected = [generate_uri(board, str(thread), "lainchan")]
     assert threads == expected
+
+
+# Asserts that a list of thread URIs is returned.
+@hypothesis.given(st.integers(min_value=0), st.text())
+def test_get_threads_from_catalog(thread, board):
+    content = [{"threadId": thread}]
+
+    # Hardcoded test for Endchan.
+    threads = list(get_threads_from_catalog(content, board, "endchan"))
+    expected = [generate_uri(board, str(thread), "endchan")]
+    assert threads == expected
+
+    ## TODO: Add in tests for more Lynxchan imageboards.
+
+
+# Asserts that a valid generator is returned.
+@hypothesis.given(st.text())
+def test_get_threads(board):
+    for imageboard in CONTEXTS:
+        generator = get_threads([], board, imageboard)
+        assert isinstance(generator, types.GeneratorType)
 
 
 class TestGetImages:
@@ -222,10 +246,10 @@ def test_format_post(no, name, trip, sub, com, filename, ext, date):
     assert time.ctime(date) in formatted
 
     if name:
-        assert name in formatted
+        assert unescape(name) in formatted
     if trip:
         assert "!%s" % trip in formatted
     if sub:
-        assert "\"%s\"" % sub in formatted
+        assert unescape("\"%s\"" % sub) in formatted
     if filename and ext:
         assert filename + ext in formatted

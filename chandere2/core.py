@@ -105,15 +105,16 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
                 del target_uris[uri]
                 continue
 
-            filter_posts(content, filters)
-            cache_posts(content, cache, imageboard)
 
             if thread and args.mode == "fd":
+                filter_posts(content, filters)
+                cache_posts(content, cache, imageboard)
                 for image, filename in find_files(content, board, imageboard):
                     output.write("Downloading \"%s\"..." % filename)
                     await download_file(image, path, filename, args.ssl)
-
             elif thread and args.mode == "ar":
+                filter_posts(content, filters)
+                cache_posts(content, cache, imageboard)
                 if args.output_format == "sqlite":
                     archive_sqlite(content, path, imageboard)
                 else:
