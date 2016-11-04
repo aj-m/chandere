@@ -6,8 +6,10 @@ import hypothesis.strategies as st
 
 from chandere2.context import CONTEXTS
 from chandere2.post import (ascii_format_post, cache_posts, filter_posts,
-                            find_files, get_images, get_image_uri,
-                            get_threads, get_threads_from_catalog,
+                            find_files, get_images_default,
+                            get_images_id_based, get_images_path_based,
+                            get_image_uri, get_threads,
+                            get_threads_from_catalog,
                             get_threads_from_endpoint, unescape)
 from chandere2.validate import generate_uri
 
@@ -43,7 +45,12 @@ def test_get_threads_from_catalog(thread, board):
     expected = [generate_uri(board, str(thread), "endchan")]
     assert threads == expected
 
-    ## TODO: Add in tests for more Lynxchan imageboards.
+    # Hardcoded test for Nextchan.
+    content = [{"post_id": thread}]
+
+    threads = list(get_threads_from_catalog(content, board, "nextchan"))
+    expected = [generate_uri(board, str(thread), "nextchan")]
+    assert threads == expected
 
 
 # Asserts that a valid generator is returned.
@@ -54,7 +61,7 @@ def test_get_threads(board):
         assert isinstance(generator, types.GeneratorType)
 
 
-class TestGetImages:
+class TestGetImagesDefault:
     # Asserts that images are properly parsed
     @hypothesis.given(st.text(), st.text(), st.integers())
     def test_get_images(self, filename, extension, tim):
@@ -62,15 +69,15 @@ class TestGetImages:
         parsed = [(filename + extension, str(tim) + extension)]
 
         # Hardcoded test for 4chan.
-        assert get_images(content, "4chan") == parsed
+        assert list(get_images_default(content, "4chan")) == parsed
 
         # Hardcoded test for 8chan.
-        assert get_images(content, "8chan") == parsed
+        assert list(get_images_default(content, "8chan")) == parsed
 
         # Hardcoded test for Lainchan.
-        assert get_images(content, "lainchan") == parsed
+        assert list(get_images_default(content, "lainchan")) == parsed
 
-    # Asserts that multiple images can be parsed out of one pos.
+    # Asserts that multiple images can be parsed out of one post.
     @hypothesis.given(st.text(), st.text(), st.integers())
     def test_get_several_images(self, filename, extension, tim):
         content = {"filename": filename, "ext": extension, "tim": str(tim),
@@ -80,13 +87,90 @@ class TestGetImages:
                   (filename + extension, str(tim + 1) + extension)]
 
         # Hardcoded test for 4chan.
-        assert get_images(content, "4chan") == parsed
+        assert list(get_images_default(content, "4chan")) == parsed
 
         # Hardcoded test for 8chan.
-        assert get_images(content, "8chan") == parsed
+        assert list(get_images_default(content, "8chan")) == parsed
 
         # Hardcoded test for Lainchan.
-        assert get_images(content, "lainchan") == parsed
+        assert list(get_images_default(content, "lainchan")) == parsed
+
+
+class TestGetImagesPathBased:
+    # Asserts that images are properly parsed
+    @hypothesis.given(st.text(), st.text())
+    def test_get_images(self, filename, path):
+        content = {"files": [{"originalName": filename, "path": path}]}
+        parsed = [(filename, path[1:])]
+
+        # Hardcoded test for Endchan.
+        assert list(get_images_path_based(content, "endchan")) == parsed
+
+    # Asserts that multiple images can be parsed out of one post.
+    @hypothesis.given(st.text(), st.text())
+    def test_get_several_images(self, filename, path):
+        content = {"files": [{"originalName": filename, "path": path},
+                             {"originalName": filename, "path": path}]}
+        parsed = [(filename, path[1:]), (filename, path[1:])]
+
+        # Hardcoded test for Endchan.
+        assert list(get_images_path_based(content, "endchan")) == parsed
+
+
+## TODO: Clean up. <jakob@memeware.net>
+class TestGetImagesIdBased:
+    # Asserts that images are properly parsed
+    @hypothesis.given(st.text(), st.integers(), st.integers())
+    def test_get_images(self, filename, file_id, post_id):
+        content = {
+            "post_id": post_id,
+            "attachments": [
+                {
+                    "mime": "img\\/png",
+                    "pivot": {
+                        "filename": filename,
+                        "file_id": file_id
+                    }
+                }
+            ]
+        }
+        parsed = [(filename + ".png",
+                   "%s/%d-%d.%s" % (file_id, post_id, 0, "png"))]
+
+        # Hardcoded test for Nextchan.
+        assert list(get_images_id_based(content, "nextchan")) == parsed
+
+
+    # Asserts that multiple images can be parsed out of one post.
+    @hypothesis.given(st.text(), st.integers(), st.integers())
+    def test_get_several_images(self, filename, file_id, post_id):
+        content = {
+            "post_id": post_id,
+            "attachments": [
+                {
+                    "mime": "img\\/png",
+                    "pivot": {
+                        "filename": filename,
+                        "file_id": file_id
+                    }
+                },
+                {
+                    "mime": "img\\/png",
+                    "pivot": {
+                        "filename": filename,
+                        "file_id": file_id
+                    }
+                }
+            ]
+        }
+
+        parsed = [(filename + ".png",
+                   "%s/%d-%d.%s" % (file_id, post_id, 0, "png")),
+                  (filename + ".png",
+                   "%s/%d-%d.%s" % (file_id, post_id, 1, "png"))]
+
+        # Hardcoded test for Nextchan.
+        assert list(get_images_id_based(content, "nextchan")) == parsed
 
 
 # Asserts that a proper image URI is returned.
@@ -113,10 +197,11 @@ def test_get_image_uri(name, extension, board):
 # Asserts that files are properly extracted from a post.
 @hypothesis.given(st.text(), st.text(), st.text(), st.integers())
 def test_find_files(name, extension, board, tim):
+    # Hardcoded example post for Vichan-styled imageboards.
     content = {"posts": [{"filename": name, "ext": extension, "tim": tim}]}
 
     # Hardcoded test for 4chan.
-    found = list(get_images(content.get("posts")[0], "4chan"))
+    found = list(get_images_default(content.get("posts")[0], "4chan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "4chan")
@@ -127,7 +212,7 @@ def test_find_files(name, extension, board, tim):
     assert list(find_files(content, board, "4chan")) == parsed
 
     # Hardcoded test for 8chan.
-    found = list(get_images(content.get("posts")[0], "8chan"))
+    found = list(get_images_default(content.get("posts")[0], "8chan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "8chan")
@@ -138,7 +223,7 @@ def test_find_files(name, extension, board, tim):
     assert list(find_files(content, board, "8chan")) == parsed
 
     # Hardcoded test for Lainchan.
-    found = list(get_images(content.get("posts")[0], "lainchan"))
+    found = list(get_images_default(content.get("posts")[0], "lainchan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "lainchan")
@@ -147,6 +232,45 @@ def test_find_files(name, extension, board, tim):
         parsed = []
 
     assert list(find_files(content, board, "lainchan")) == parsed
+
+    # Hardcoded example post for Lynxchan-styled imageboards.
+    content = {"files": [{"originalName": name, "path": name}]}
+
+    # Hardcoded test for Endchan.
+    found = list(get_images_path_based(content, "endchan"))
+    if found:
+        original_filename, server_filename = found[0]
+        uri = get_image_uri(server_filename, board, "endchan")
+        parsed = [(uri, original_filename)]
+    else:
+        parsed = []
+
+    assert list(find_files(content, board, "endchan")) == parsed
+
+    # Hardcoded example post for Infinity Next styled imageboards.
+    content = {
+        "post_id": tim,
+        "attachments": [
+            {
+                "mime": "img\\/png",
+                "pivot": {
+                    "filename": name,
+                    "file_id": tim
+                }
+            }
+        ]
+    }
+
+    # Hardcoded test for Nextchan.
+    found = list(get_images_id_based(content, "nextchan"))
+    if found:
+        original_filename, server_filename = found[0]
+        uri = get_image_uri(server_filename, board, "nextchan")
+        parsed = [(uri, original_filename)]
+    else:
+        parsed = []
+
+    assert list(find_files(content, board, "nextchan")) == parsed
 
 
 class TestFilterPosts:
@@ -246,7 +370,7 @@ def test_format_post(no, name, trip, sub, com, filename, ext, date):
     assert time.ctime(date) in formatted
 
     if name:
-        assert unescape(name) in formatted
+        assert unescape(name) in formatted or "Anonymous" in formatted
     if trip:
         assert "!%s" % trip in formatted
     if sub:

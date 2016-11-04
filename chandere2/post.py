@@ -48,25 +48,6 @@ def get_threads(content: list, board: str, imageboard: str):
     return generator
 
 
-def get_images(post: dict, imageboard: str) -> list:
-    """Scrapes a post for images, returning a list of tuples containing
-    the original filename and the filename as it's stored on the server.
-    """
-    context = CONTEXTS.get(imageboard)
-    filename, tim, ext, extra_files = context.get("image_fields")
-    images = []
-
-    if post.get(tim):
-        original_filename = post.get(filename) + post.get(ext)
-        server_filename = str(post.get(tim)) + post.get(ext)
-        images = [(original_filename, server_filename)]
-        for image in post.get(extra_files, []):
-            original_filename = image.get(filename) + image.get(ext)
-            server_filename = str(image.get(tim)) + image.get(ext)
-            images += [(original_filename, server_filename)]
-    return images
-
-
 def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     """Given a filename, a board, and an imageboard, returns a URI
     pointing to the image specified by the parameters.
@@ -81,11 +62,81 @@ def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     return uri + "/" + filename
 
 
+def get_images_default(post: dict, imageboard: str):
+    """Scrapes a post for images, yielding the user-provided filename
+    and the filename as it's stored on the server for each image found.
+    This uses the default method of finding filenames and extensions.
+    """
+    context = CONTEXTS.get(imageboard)
+    filename, tim, ext, extra_files = context.get("image_fields")
+
+    if post.get(tim):
+        original_filename = post.get(filename) + post.get(ext)
+        server_filename = str(post.get(tim)) + post.get(ext)
+        yield (original_filename, server_filename)
+        for image in post.get(extra_files, []):
+            original_filename = image.get(filename) + image.get(ext)
+            server_filename = str(image.get(tim)) + image.get(ext)
+            yield (original_filename, server_filename)
+
+
+def get_images_path_based(post: dict, imageboard: str):
+    """Alternative method of getting images. Uses the path supplied by
+    the API endpoint.
+    """
+    context = CONTEXTS.get(imageboard)
+    filename, path, _, files_field = context.get("image_fields")
+
+    for image in post.get(files_field, []):
+        yield (image.get(filename), image.get(path)[1:])
+
+
+def get_images_id_based(post: dict, imageboard: str):
+    """Alternative method of getting images. Uses the post and file ID's
+    supplied by the API endpoint.
+    """
+    context = CONTEXTS.get(imageboard)
+    no = context.get("post_fields")[0]
+    filename, file_id, _, files_field = context.get("image_fields")
+
+    for index, image in enumerate(post.get(files_field, [])):
+        pivot = image.get(context.get("image_pivot"))
+        extension = re.search("(?<=\\\\\/).+", image.get("mime")).group()
+        original_filename = ".".join((pivot.get(filename), extension))
+        server_filename = "%s/%d-%d.%s" % (pivot.get(file_id), post.get(no),
+                                           index, extension)
+        yield (original_filename, server_filename)
+
+
+## TODO: Write tests. <jakob@memeware.net>
+def iterate_posts(content: dict, imageboard: str):
+    """Contextual subroutine for iterating over all of the posts in a
+    thread's JSON representation.
+    """
+    context = CONTEXTS.get(imageboard)
+
+    if context.get("reply_field"):
+        yield content
+        for post in content.get(context.get("reply_field"), []):
+            yield post
+    else:
+        for post in content.get("posts"):
+            yield post
+
+
 def find_files(content: dict, board: str, imageboard: str):
     """Generator to iterate over posts and yield a tuple containing the
     URI and filename for any files it happens to find.
     """
-    for post in content.get("posts"):
+    ## TODO: Make check more general. <jakob@memeware.net>
+    if imageboard == "endchan":
+        get_images = get_images_path_based
+    elif imageboard == "nextchan":
+        get_images = get_images_id_based
+    else:
+        get_images = get_images_default
+
+    for post in iterate_posts(content, imageboard):
         for original_filename, server_filename in get_images(post, imageboard):
             image_uri = get_image_uri(server_filename, board, imageboard)
             yield (image_uri, original_filename)
@@ -101,9 +152,11 @@ def filter_posts(content: dict, filters: list):
                 del content.get("posts")[index]
 
 
-## FIXME: Untested. <jakob@memeware.net>
 def cache_posts(content: dict, cache: list, imageboard: str):
-    """[Document me!]"""
+    """Removes values of the "posts" attribute of a dictionary if they
+    are in the cache. Any values still remaining will be added to the
+    cache.
+    """
     context = CONTEXTS.get(imageboard)
     no = context.get("post_fields")[0]
 
@@ -129,7 +182,8 @@ def ascii_format_post(post: dict, imageboard: str):
 
     date = time.ctime(post.get(date))
     tripcode = "!" + post.get(trip) if post.get(trip) else ""
-    string.append("%s%s on %s" % (unescape(post.get(name)), tripcode, date))
+    author = unescape(post.get(name)) or "Anonymous"
+    string.append("%s%s on %s" % (author, tripcode, date))
 
     if post.get(sub):
         string.append("\"%s\"" % unescape(post.get(sub)))
@@ -138,6 +192,12 @@ def ascii_format_post(post: dict, imageboard: str):
 
     if post.get(filename) and post.get(ext):
         string.append("File: " + post.get(filename) + post.get(ext))
+        ## TODO: Check should be more reasonable. <jakob@memeware.net>
+        # if ext is None:
+        #     files_field = context.get("image_fields")[3]
+        #     string.append("File: " + post.get(files_field).get(filename))
+        # else:
+        #     string.append("File: " + post.get(filename) + post.get(ext))
     else:
         string.append("File: [No File]")
 

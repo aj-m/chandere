@@ -3,7 +3,6 @@ Short Term Proposals
 * Write tests for archive_sqlite and archive_plaintext.
 * Write tests for core.py.
 * Better abstract the check to see if main_loop is done.
-* Refactor.
 * Add support for Infinity Next, specifically NextChan.
 * Add support for Endchan.
 * Improve core.clean_up, so that it outputs less about cancelled tasks.

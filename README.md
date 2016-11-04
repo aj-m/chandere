@@ -16,7 +16,7 @@ Primary Features
 * Scraping from multiple boards and threads simutaneously
 * Archiving to several formats, including SQLite and plaintext.
 * Post filtering with syntax similar to that of 4chan's.
-* Currently supports 4chan, 8chan, 76chan and Lainchan.
+* Currently supports 4chan, 8chan, 76chan, Endchan, Lainchan, and Nextchan.
 
 
 Installation
