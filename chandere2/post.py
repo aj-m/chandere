@@ -108,7 +108,6 @@ def get_images_id_based(post: dict, imageboard: str):
         yield (original_filename, server_filename)
 
 
-## TODO: Write tests. <jakob@memeware.net>
 def iterate_posts(content: dict, imageboard: str):
     """Contextual subroutine for iterating over all of the posts in a
     thread's JSON representation.
@@ -142,16 +141,18 @@ def find_files(content: dict, board: str, imageboard: str):
             yield (image_uri, original_filename)
 
 
-def filter_posts(content: dict, filters: list):
+## FIXME: No method of filtering posts with a reply field. <jakob@memeware.net>
+def filter_posts(content: dict, filters: list, imageboard: str):
     """Removes values of the "posts" attribute of a dictionary according
     to a given list of filters.
     """
-    for index, post in enumerate(content.get("posts", [])):
-        for field, pattern in filters:
-            if re.search(pattern, str(post.get(field))):
-                del content.get("posts")[index]
+    check_filtered = lambda post: re.search(pattern, str(post.get(field, "")))
+    for field, pattern in filters:
+        content = filter(check_filtered, iterate_posts(content, imageboard))
+    return list(content)
 
 
+## FIXME: No method of filtering posts with a reply field. <jakob@memeware.net>
 def cache_posts(content: dict, cache: list, imageboard: str):
     """Removes values of the "posts" attribute of a dictionary if they
     are in the cache. Any values still remaining will be added to the

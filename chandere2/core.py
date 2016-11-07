@@ -107,7 +107,7 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
 
 
             if thread and args.mode == "fd":
-                filter_posts(content, filters)
+                filter_posts(content, filters, imageboard)
                 cache_posts(content, cache, imageboard)
                 for image, filename in find_files(content, board, imageboard):
                     output.write("Downloading \"%s\"..." % filename)

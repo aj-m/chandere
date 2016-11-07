@@ -10,7 +10,7 @@ from chandere2.post import (ascii_format_post, cache_posts, filter_posts,
                             get_images_id_based, get_images_path_based,
                             get_image_uri, get_threads,
                             get_threads_from_catalog,
-                            get_threads_from_endpoint, unescape)
+                            get_threads_from_endpoint, iterate_posts, unescape)
 from chandere2.validate import generate_uri
 
 
@@ -173,6 +173,33 @@ class TestGetImagesIdBased:
         assert list(get_images_id_based(content, "nextchan")) == parsed
 
 
+# Asserts that both forms of thread output are iterable.
+def test_iterate_posts():
+    # Hardcoded example for Vichan-styled imageboards.
+    content = {"posts": [{}]}
+
+    # Hardcoded test for 4chan.
+    assert list(iterate_posts(content, "4chan")) == [{}]
+
+    # Hardcoded test for 8chan.
+    assert list(iterate_posts(content, "8chan")) == [{}]
+
+    # Hardcoded test for Lainchan.
+    assert list(iterate_posts(content, "lainchan")) == [{}]
+
+    # Hardcoded example for Lynxchan-styled imageboards.
+    content = {"posts": [{}]}
+
+    # Hardcoded test for Endchan.
+    assert list(iterate_posts(content, "endchan")) == [content, {}]
+
+    # Hardcoded example for Infinity-Next styled imageboards.
+    content = {"replies": [{}]}
+
+    # Hardcoded test for Nextchan.
+    assert list(iterate_posts(content, "nextchan")) == [content, {}]
+
+
 # Asserts that a proper image URI is returned.
 @hypothesis.given(st.text(), st.text(), st.text())
 def test_get_image_uri(name, extension, board):
@@ -277,18 +304,61 @@ class TestFilterPosts:
     # Asserts that the dictionary is untouched.
     @hypothesis.given(st.text(), st.text())
     def test_no_filters(self, field, value):
+        # Hardcoded test for 4chan.
         content = {"posts": [{field: value}]}
-        filter_posts(content, [])
+        filter_posts(content, [], "4chan")
         assert content == {"posts": [{field: value}]}
+
+        # Hardcoded test for 8chan.
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [], "8chan")
+        assert content == {"posts": [{field: value}]}
+
+        # Hardcoded test for Lainchan.
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [], "8chan")
+        assert content == {"posts": [{field: value}]}
+
+        # Hardcoded test for Endchan.
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [], "endchan")
+        assert content == {"posts": [{field: value}]}
+
+        # Hardcoded test for Nextchan.
+        content = {"replies": [{field: value}]}
+        filter_posts(content, [], "nextchan")
+        assert content == {"replies": [{field: value}]}
+
 
     # Asserts that the post is properly filtered.
     # Regex characters are blacklisted to prevent false negatives.
     @hypothesis.given(st.text(),
                       st.characters(blacklist_characters="*+?()[]|\\"))
     def test_match_filter(self, field, value):
+        # Hardcoded test for 4chan.
         content = {"posts": [{field: value}]}
-        filter_posts(content, [(field, value)])
+        filter_posts(content, [(field, value)], "4chan")
         assert content == {"posts": []}
+
+        # Hardcoded test for 8chan.
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [(field, value)], "8chan")
+        assert content == {"posts": []}
+
+        # Hardcoded test for Lainchan.
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [(field, value)], "8chan")
+        assert content == {"posts": []}
+
+        # Hardcoded test for Endchan.
+        content = {"posts": [{field: value}]}
+        filter_posts(content, [(field, value)], "endchan")
+        assert content == {"posts": []}
+
+        # Hardcoded test for Nextchan.
+        content = {"replies": [{field: value}]}
+        filter_posts(content, [(field, value)], "nextchan")
+        assert content == {"replies": []}
 
 
 class TestCachePosts:

@@ -1,9 +1,9 @@
 ![Chandere2](https://raw.github.com/TsarFox/chandere2/master/Chandere2_Logo.png "Chandere2")
 ========
 ## A command-line utility programmed and maintained by [Jakob.](http://tsar-fox.com/)
-A better image/file downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
+An asynchronous image/file downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
 
-Chandere2 is a rewrite of Chandere1.0 using asynchronous concurrency. It runs on all versions of Python newer than 3.5.
+Chandere2 is a complete rewrite of Chandere using asynchronous concurrency. Its goals are to be as fast and as universal as possible.
 
 Chandere2 is free software, licensed under the [GNU General Public License.](http://gnu.org/licenses/gpl.html)
 

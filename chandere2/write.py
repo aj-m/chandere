@@ -5,7 +5,7 @@ import re
 import sqlite3
 
 from chandere2.context import CONTEXTS
-from chandere2.post import (ascii_format_post, unescape)
+from chandere2.post import (ascii_format_post, iterate_posts, unescape)
 
 
 def archive_sqlite(content: dict, path: str, imageboard: str):
@@ -18,7 +18,7 @@ def archive_sqlite(content: dict, path: str, imageboard: str):
     context = CONTEXTS.get(imageboard)
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
 
-    for post in content.get("posts"):
+    for post in iterate_posts(content, imageboard):
         if post.get(filename):
             filename = post.get(filename) + post.get(ext)
         else:
@@ -46,7 +46,7 @@ def archive_plaintext(content: dict, path: str, imageboard: str):
     parent = None
 
     with open(path, "r+") as output_file:
-        for post in content.get("posts"):
+        for post in iterate_posts(content, imageboard):
             formatted = ascii_format_post(post, imageboard)
             insert_to_file(output_file, formatted, parent, post.get(no))
 

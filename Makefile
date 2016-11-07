@@ -1,10 +1,10 @@
-DOCPATH = docs
+DOCPATH := docs
 
 .PHONY: test doc
 
 # Tests
 test:
-	PYTHONPATH=. python -m pytest -v tests/test_*.py
+	python -m pytest -v tests/test_*.py
 
 
 # Manpage compression
