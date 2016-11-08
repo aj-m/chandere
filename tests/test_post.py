@@ -225,10 +225,10 @@ def test_get_image_uri(name, extension, board):
 @hypothesis.given(st.text(), st.text(), st.text(), st.integers())
 def test_find_files(name, extension, board, tim):
     # Hardcoded example post for Vichan-styled imageboards.
-    content = {"posts": [{"filename": name, "ext": extension, "tim": tim}]}
+    content = [{"filename": name, "ext": extension, "tim": tim}]
 
     # Hardcoded test for 4chan.
-    found = list(get_images_default(content.get("posts")[0], "4chan"))
+    found = list(get_images_default(content[0], "4chan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "4chan")
@@ -239,7 +239,7 @@ def test_find_files(name, extension, board, tim):
     assert list(find_files(content, board, "4chan")) == parsed
 
     # Hardcoded test for 8chan.
-    found = list(get_images_default(content.get("posts")[0], "8chan"))
+    found = list(get_images_default(content[0], "8chan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "8chan")
@@ -250,7 +250,7 @@ def test_find_files(name, extension, board, tim):
     assert list(find_files(content, board, "8chan")) == parsed
 
     # Hardcoded test for Lainchan.
-    found = list(get_images_default(content.get("posts")[0], "lainchan"))
+    found = list(get_images_default(content[0], "lainchan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "lainchan")
@@ -261,10 +261,10 @@ def test_find_files(name, extension, board, tim):
     assert list(find_files(content, board, "lainchan")) == parsed
 
     # Hardcoded example post for Lynxchan-styled imageboards.
-    content = {"files": [{"originalName": name, "path": name}]}
+    content = [{"originalName": name, "path": name}]
 
     # Hardcoded test for Endchan.
-    found = list(get_images_path_based(content, "endchan"))
+    found = list(get_images_path_based(content[0], "endchan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "endchan")
@@ -275,7 +275,7 @@ def test_find_files(name, extension, board, tim):
     assert list(find_files(content, board, "endchan")) == parsed
 
     # Hardcoded example post for Infinity Next styled imageboards.
-    content = {
+    content = [{
         "post_id": tim,
         "attachments": [
             {
@@ -286,10 +286,10 @@ def test_find_files(name, extension, board, tim):
                 }
             }
         ]
-    }
+    }]
 
     # Hardcoded test for Nextchan.
-    found = list(get_images_id_based(content, "nextchan"))
+    found = list(get_images_id_based(content[0], "nextchan"))
     if found:
         original_filename, server_filename = found[0]
         uri = get_image_uri(server_filename, board, "nextchan")
@@ -301,64 +301,21 @@ def test_find_files(name, extension, board, tim):
 
 
 class TestFilterPosts:
-    # Asserts that the dictionary is untouched.
+    # Asserts that the iterable is untouched.
     @hypothesis.given(st.text(), st.text())
     def test_no_filters(self, field, value):
-        # Hardcoded test for 4chan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [], "4chan")
-        assert content == {"posts": [{field: value}]}
-
-        # Hardcoded test for 8chan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [], "8chan")
-        assert content == {"posts": [{field: value}]}
-
-        # Hardcoded test for Lainchan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [], "8chan")
-        assert content == {"posts": [{field: value}]}
-
-        # Hardcoded test for Endchan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [], "endchan")
-        assert content == {"posts": [{field: value}]}
-
-        # Hardcoded test for Nextchan.
-        content = {"replies": [{field: value}]}
-        filter_posts(content, [], "nextchan")
-        assert content == {"replies": [{field: value}]}
-
+        posts = [{field: value}]
+        posts = filter_posts(posts, [])
+        assert posts == [{field: value}]
 
     # Asserts that the post is properly filtered.
     # Regex characters are blacklisted to prevent false negatives.
     @hypothesis.given(st.text(),
                       st.characters(blacklist_characters="*+?()[]|\\"))
     def test_match_filter(self, field, value):
-        # Hardcoded test for 4chan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [(field, value)], "4chan")
-        assert content == {"posts": []}
-
-        # Hardcoded test for 8chan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [(field, value)], "8chan")
-        assert content == {"posts": []}
-
-        # Hardcoded test for Lainchan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [(field, value)], "8chan")
-        assert content == {"posts": []}
-
-        # Hardcoded test for Endchan.
-        content = {"posts": [{field: value}]}
-        filter_posts(content, [(field, value)], "endchan")
-        assert content == {"posts": []}
-
-        # Hardcoded test for Nextchan.
-        content = {"replies": [{field: value}]}
-        filter_posts(content, [(field, value)], "nextchan")
-        assert content == {"replies": []}
+        posts = [{field: value}]
+        posts = filter_posts(posts, [(field, value)])
+        assert posts == []
 
 
 class TestCachePosts:
@@ -367,26 +324,37 @@ class TestCachePosts:
     def test_cache_posts(self, first_id):
         # Hardcoded test for 4chan.
         cache = []
-        content = {"posts": [{"no": first_id}]}
-
-        cache_posts(content, cache, "4chan")
-        assert content == {"posts": [{"no": first_id}]}
+        posts = [{"no": first_id}]
+        posts = cache_posts(posts, cache, "4chan")
+        assert posts == [{"no": first_id}]
         assert cache == [first_id]
 
         # Hardcoded test for 8chan.
         cache = []
-        content = {"posts": [{"no": first_id}]}
-
-        cache_posts(content, cache, "8chan")
-        assert content == {"posts": [{"no": first_id}]}
+        posts = [{"no": first_id}]
+        posts = cache_posts(posts, cache, "8chan")
+        assert posts == [{"no": first_id}]
         assert cache == [first_id]
 
         # Hardcoded test for Lainchan.
         cache = []
-        content = {"posts": [{"no": first_id}]}
+        posts = [{"no": first_id}]
+        posts = cache_posts(posts, cache, "lainchan")
+        assert posts == [{"no": first_id}]
+        assert cache == [first_id]
 
-        cache_posts(content, cache, "lainchan")
-        assert content == {"posts": [{"no": first_id}]}
+        # Hardcoded test for Endchan.
+        cache = []
+        posts = [{"threadId": first_id}]
+        posts = cache_posts(posts, cache, "endchan")
+        assert posts == [{"threadId": first_id}]
+        assert cache == [first_id]
+
+        # Hardcoded test for Nextchan.
+        cache = []
+        posts = [{"post_id": first_id}]
+        posts = cache_posts(posts, cache, "nextchan")
+        assert posts == [{"post_id": first_id}]
         assert cache == [first_id]
 
     @hypothesis.given(st.integers(), st.integers())
@@ -396,26 +364,37 @@ class TestCachePosts:
 
         # Hardcoded test for 4chan.
         cache = [first_id]
-        content = {"posts": [{"no": first_id}, {"no": second_id}]}
-
-        cache_posts(content, cache, "4chan")
-        assert content == {"posts": [{"no": second_id}]}
+        posts = [{"no": first_id}, {"no": second_id}]
+        posts = cache_posts(posts, cache, "4chan")
+        assert posts == [{"no": second_id}]
         assert cache == [first_id, second_id]
 
         # Hardcoded test for 8chan.
         cache = [first_id]
-        content = {"posts": [{"no": first_id}, {"no": second_id}]}
-
-        cache_posts(content, cache, "8chan")
-        assert content == {"posts": [{"no": second_id}]}
+        posts = [{"no": first_id}, {"no": second_id}]
+        posts = cache_posts(posts, cache, "8chan")
+        assert posts == [{"no": second_id}]
         assert cache == [first_id, second_id]
 
         # Hardcoded test for Lainchan.
         cache = [first_id]
-        content = {"posts": [{"no": first_id}, {"no": second_id}]}
+        posts = [{"no": first_id}, {"no": second_id}]
+        posts = cache_posts(posts, cache, "lainchan")
+        assert posts == [{"no": second_id}]
+        assert cache == [first_id, second_id]
 
-        cache_posts(content, cache, "lainchan")
-        assert content == {"posts": [{"no": second_id}]}
+        # Hardcoded test for Endchan.
+        cache = [first_id]
+        posts = [{"threadId": first_id}, {"threadId": second_id}]
+        posts = cache_posts(posts, cache, "endchan")
+        assert posts == [{"threadId": second_id}]
+        assert cache == [first_id, second_id]
+
+        # Hardcoded test for Nextchan.
+        cache = [first_id]
+        posts = [{"post_id": first_id}, {"post_id": second_id}]
+        posts = cache_posts(posts, cache, "nextchan")
+        assert posts == [{"post_id": second_id}]
         assert cache == [first_id, second_id]
 
 

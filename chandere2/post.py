@@ -101,29 +101,35 @@ def get_images_id_based(post: dict, imageboard: str):
 
     for index, image in enumerate(post.get(files_field, [])):
         pivot = image.get(context.get("image_pivot"))
-        extension = re.search("(?<=\\\\\/).+", image.get("mime")).group()
-        original_filename = ".".join((pivot.get(filename), extension))
+        original_filename = pivot.get(filename)
+        extension = re.search("(?<=\.).+$", original_filename).group()
         server_filename = "%s/%d-%d.%s" % (pivot.get(file_id), post.get(no),
                                            index, extension)
         yield (original_filename, server_filename)
 
 
 def iterate_posts(content: dict, imageboard: str):
-    """Contextual subroutine for iterating over all of the posts in a
+    """Unified generator for iterating over all of the posts in a
     thread's JSON representation.
     """
     context = CONTEXTS.get(imageboard)
+    reply_field = context.get("reply_field")
 
-    if context.get("reply_field"):
+    if reply_field:
+        if reply_field in content:
+            replies = content[reply_field]
+            del content[reply_field]
+        else:
+            replies = []
         yield content
-        for post in content.get(context.get("reply_field"), []):
+        for post in replies:
             yield post
     else:
         for post in content.get("posts"):
             yield post
 
 
-def find_files(content: dict, board: str, imageboard: str):
+def find_files(posts: list, board: str, imageboard: str):
     """Generator to iterate over posts and yield a tuple containing the
     URI and filename for any files it happens to find.
     """
@@ -135,25 +141,23 @@ def find_files(content: dict, board: str, imageboard: str):
     else:
         get_images = get_images_default
 
-    for post in iterate_posts(content, imageboard):
+    for post in posts:
         for original_filename, server_filename in get_images(post, imageboard):
             image_uri = get_image_uri(server_filename, board, imageboard)
             yield (image_uri, original_filename)
 
 
-## FIXME: No method of filtering posts with a reply field. <jakob@memeware.net>
-def filter_posts(content: dict, filters: list, imageboard: str):
-    """Removes values of the "posts" attribute of a dictionary according
-    to a given list of filters.
+def filter_posts(posts: iter, filters: list):
+    """Given an iterable thread, returns an equivalent thread in which
+    all posts that fall under the given list of filters are removed.
     """
-    check_filtered = lambda post: re.search(pattern, str(post.get(field, "")))
     for field, pattern in filters:
-        content = filter(check_filtered, iterate_posts(content, imageboard))
-    return list(content)
+        filtered = lambda post: not re.search(pattern, str(post.get(field, "")))
+        posts = list(filter(filtered, posts))
+    return list(posts)
 
 
-## FIXME: No method of filtering posts with a reply field. <jakob@memeware.net>
-def cache_posts(content: dict, cache: list, imageboard: str):
+def cache_posts(posts: list, cache: list, imageboard: str):
     """Removes values of the "posts" attribute of a dictionary if they
     are in the cache. Any values still remaining will be added to the
     cache.
@@ -161,11 +165,11 @@ def cache_posts(content: dict, cache: list, imageboard: str):
     context = CONTEXTS.get(imageboard)
     no = context.get("post_fields")[0]
 
-    check_cached = lambda post: not post.get(no) in cache
-    content["posts"] = list(filter(check_cached, content.get("posts")))
-
-    for post in content.get("posts"):
+    cached = lambda post: post.get(no) not in cache
+    posts = list(filter(cached, posts))
+    for post in posts:
         cache.append(post.get(no))
+    return posts
 
 
 def unescape(text: str) -> str:
@@ -181,7 +185,10 @@ def ascii_format_post(post: dict, imageboard: str):
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
     string = ["=" * 80, "Post ID: %s" % post.get(no)]
 
-    date = time.ctime(post.get(date))
+    if isinstance(post.get(date), int):
+        date = time.ctime(post.get(date))
+    else:
+        date = post.get(date)
     tripcode = "!" + post.get(trip) if post.get(trip) else ""
     author = unescape(post.get(name)) or "Anonymous"
     string.append("%s%s on %s" % (author, tripcode, date))

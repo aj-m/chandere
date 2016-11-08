@@ -5,7 +5,7 @@ This document records all notable changes to Chandere2.
 
 **Version 2.3.0**
 -----------------
-* Added support for 76chan.
+* Added support for 76chan, Endchan and Nextchan.
 
 
 **Version 2.2.0**

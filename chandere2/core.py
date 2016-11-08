@@ -10,17 +10,17 @@ from chandere2.cli import PARSER
 from chandere2.connection import (download_file, fetch_uri, try_connection,
                                   wrap_semaphore)
 from chandere2.output import Console
-from chandere2.post import (cache_posts, find_files, filter_posts, get_threads)
+from chandere2.post import (cache_posts, find_files, filter_posts,
+                            get_threads, iterate_posts)
 from chandere2.validate import (get_filters, get_path, get_targets)
 from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 
 MAX_CONNECTIONS = 8
 
 
-def main():
+def main(args=PARSER.parse_args(), output=None):
     """Command-line entry-point to Chandere2."""
-    args = PARSER.parse_args()
-    output = Console(debug=args.debug)
+    output = output or Console(debug=args.debug)
 
     target_uris, failed = get_targets(args.targets, args.imageboard)
     for pattern in failed:
@@ -107,18 +107,20 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
 
 
             if thread and args.mode == "fd":
-                filter_posts(content, filters, imageboard)
-                cache_posts(content, cache, imageboard)
-                for image, filename in find_files(content, board, imageboard):
+                posts = iterate_posts(content, imageboard)
+                posts = filter_posts(posts, filters)
+                posts = cache_posts(posts, cache, imageboard)
+                for image, filename in find_files(posts, board, imageboard):
                     output.write("Downloading \"%s\"..." % filename)
                     await download_file(image, path, filename, args.ssl)
             elif thread and args.mode == "ar":
-                filter_posts(content, filters)
-                cache_posts(content, cache, imageboard)
+                posts = iterate_posts(content, imageboard)
+                posts = filter_posts(posts, filters)
+                posts = cache_posts(posts, cache, imageboard)
                 if args.output_format == "sqlite":
-                    archive_sqlite(content, path, imageboard)
+                    archive_sqlite(posts, path, imageboard)
                 else:
-                    archive_plaintext(content, path, imageboard)
+                    archive_plaintext(posts, path, imageboard)
             else:
                 for uri in get_threads(content, board, args.imageboard):
                     target_uris[uri] = [board, True, ""]

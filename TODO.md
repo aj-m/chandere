@@ -7,6 +7,7 @@ Short Term Proposals
 * Add support for Endchan.
 * Improve core.clean_up, so that it outputs less about cancelled tasks.
 * Implement post field shorthands in get_filters.
+* Clean up tests and ensure that they properly cover code.
 
 
 Long Term Proposals
