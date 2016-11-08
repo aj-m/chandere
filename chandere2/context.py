@@ -4,7 +4,7 @@ LYNXCHAN_IMAGE_FIELDS = ("originalName", "path", None, "files")
 LYNXCHAN_POST_FIELDS = ("threadId", "creation", "name", "id", "subject",
                         "markdown", "originalName", None)
 
-NEXT_IMAGE_FIELDS = ("filename", "file_id", None, "attachments")
+NEXT_IMAGE_FIELDS = ("filename", "attachment_id", None, "attachments")
 NEXT_POST_FIELDS = ("board_id", "created_at", "author", "author_id", "subject",
                     "content_html", "filename", None)
 

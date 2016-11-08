@@ -126,15 +126,16 @@ class TestGetImagesIdBased:
             "board_id": board_id,
             "attachments": [
                 {
+                    "last_uploaded_at": "2001-11-09 14:54:22",
                     "pivot": {
                         "filename": filename + ".png",
-                        "file_id": file_id
+                        "attachment_id": file_id
                     }
                 }
             ]
         }
         parsed = [(filename + ".png",
-                   "%s/%d-%d.%s" % (file_id, board_id, 0, "png"))]
+                   "%s/%d-%d.%s" % (file_id, 1005317662, 0, "png"))]
 
         # Hardcoded test for Nextchan.
         assert list(get_images_id_based(content, "nextchan")) == parsed
@@ -146,24 +147,26 @@ class TestGetImagesIdBased:
             "board_id": board_id,
             "attachments": [
                 {
+                    "last_uploaded_at": "2001-11-09 14:54:22",
                     "pivot": {
                         "filename": filename + ".png",
-                        "file_id": file_id
+                        "attachment_id": file_id
                     }
                 },
                 {
+                    "last_uploaded_at": "2001-11-09 14:54:22",
                     "pivot": {
                         "filename": filename + ".png",
-                        "file_id": file_id
+                        "attachment_id": file_id
                     }
                 }
             ]
         }
 
         parsed = [(filename + ".png",
-                   "%s/%d-%d.%s" % (file_id, board_id, 0, "png")),
+                   "%s/%d-%d.%s" % (file_id, 1005317662, 0, "png")),
                   (filename + ".png",
-                   "%s/%d-%d.%s" % (file_id, board_id, 1, "png"))]
+                   "%s/%d-%d.%s" % (file_id, 1005317662, 1, "png"))]
 
         # Hardcoded test for Nextchan.
         assert list(get_images_id_based(content, "nextchan")) == parsed
@@ -275,9 +278,10 @@ def test_find_files(name, extension, board, tim):
         "board_id": tim,
         "attachments": [
             {
+                "last_uploaded_at": "2001-11-09 14:54:22",
                 "pivot": {
                     "filename": name + ".png",
-                    "file_id": tim
+                    "attachment_id": tim
                 }
             }
         ]
