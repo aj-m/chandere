@@ -1,10 +1,12 @@
-"""Core module and entry point to Chandere2, vaildates command-line
-input and controls the asynchronous event loop.
+"""Core module and entry point to Chandere2, which validates
+command-line input and controls the asynchronous event loop.
 """
 
 import asyncio
 import signal
 import sys
+
+import aiohttp.errors
 
 from chandere2.cli import PARSER
 from chandere2.connection import (download_file, fetch_uri, try_connection,
@@ -62,22 +64,20 @@ def clean_up():
 
 
 async def main_loop(target_uris: dict, path: str, filters: list, args, output):
-    """Loop that continually iterates over targets, processing them
-    respective to the mode of operation and stopping when finished.
+    """Asynchronous loop that iterates over targets, calling upon other
+    coroutines respective to the mode of operation to process them.
     """
-    output.write_debug("Entering main loop")
-
+    cache = []
     iterations = 0
     imageboard = args.imageboard
     create_archive(args.mode, args.output_format, path)
 
-    cache = []
+    output.write_debug("Entering main loop")
 
     while True:
         iterations += 1
         operations = []
-
-        output.write_debug("Iteration %d." % iterations)
+        output.write_debug("Starting iteration %d." % iterations)
 
         if args.nocap:
             for uri in target_uris:
@@ -93,7 +93,13 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
 
 
         for future in asyncio.as_completed(operations):
-            content, error, last_load, uri = await future
+            try:
+                content, error, last_load, uri = await future
+            except aiohttp.errors.ClientOSError:
+                output.write_error("Exception caught. The imageboard may "
+                                   "require an SSL connection - run chandere2 "
+                                   "with the '--ssl' flag.")
+                continue
             board, thread, _ = target_uris[uri]
             output.write_debug("Connected to %s..." % uri)
 

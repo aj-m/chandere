@@ -1,4 +1,4 @@
-"""Module for working with posts and thread listings."""
+"""Module for working with posts and thread endpoints."""
 
 import re
 import textwrap
@@ -9,14 +9,14 @@ from chandere2.validate import generate_uri
 
 SUBSTITUTIONS = ((r'<p class="body-line empty "><\/p>', "\n\n"),
                  (r'<\/p>(?=<p class="body-line ltr ">)', "\n"),
-                 (r"<\/?br\\?\/?>", "\n"), (r"&#039;", "'"), (r"&gt;", ">"),
-                 (r"&quot;", r"\\"), (r"&amp;", "&"), (r"<.+?>", ""),
+                 (r"<\/?br\\?\/?>", "\n"), (r"&#039;", "'"), (r"&gt;?", ">"),
+                 (r"&quot;?", r"\\"), (r"&amp;?", "&"), (r"<.+?>", ""),
                  (r"\\/", "/"))
 
 
 def get_threads_from_endpoint(content: list, board: str, imageboard: str):
-    """Typical thread parsing function for imageboards that supply a
-    plain threads.json endpoint.
+    """Thread parsing function for imageboards that supply a normal
+    threads.json endpoint.
     """
     for thread in sum([page.get("threads") for page in content], []):
         thread_no = str(thread.get("no"))
@@ -25,7 +25,7 @@ def get_threads_from_endpoint(content: list, board: str, imageboard: str):
 
 def get_threads_from_catalog(content: list, board: str, imageboard: str):
     """Alternative thread parsing function for imageboards that do not
-    offer a threads.json endpoint.
+    offer a threads.json endpoint, but instead offer a catalog.json.
     """
     context = CONTEXTS.get(imageboard)
     no = context.get("post_fields")[0]
@@ -49,17 +49,17 @@ def get_threads(content: list, board: str, imageboard: str):
 
 
 def get_image_uri(filename: str, board: str, imageboard: str) -> str:
-    """Given a filename, a board, and an imageboard, returns a URI
-    pointing to the image specified by the parameters.
-    """
+    """Produces a valid URI for the given filename, board and
+    imageboard."""
     context = CONTEXTS.get(imageboard)
 
-    uri = context.get("image_uri")
+    uri = [context.get("image_uri")]
     if context.get("board_in_image_uri"):
-        uri += "/" + board
+        uri.append(board)
     if context.get("image_dir"):
-        uri += "/" + context.get("image_dir")
-    return uri + "/" + filename
+        uri.append(context.get("image_dir"))
+    uri.append(filename)
+    return "/".join(uri)
 
 
 def get_images_default(post: dict, imageboard: str):
@@ -81,8 +81,9 @@ def get_images_default(post: dict, imageboard: str):
 
 
 def get_images_path_based(post: dict, imageboard: str):
-    """Alternative method of getting images. Uses the path supplied by
-    the API endpoint.
+    """Alternative method of getting images where an image path is
+    provided by the imageboard's thread endpoint. Currently required for
+    imageboards running Lynxchan.
     """
     context = CONTEXTS.get(imageboard)
     filename, path, _, files_field = context.get("image_fields")
@@ -92,8 +93,10 @@ def get_images_path_based(post: dict, imageboard: str):
 
 
 def get_images_id_based(post: dict, imageboard: str):
-    """Alternative method of getting images. Uses the post and file ID's
-    supplied by the API endpoint.
+    """Alternative method of getting images where several identifiers
+    provided by the imageboards' thread endpoint are used as part of
+    the image URI. Currently required for imageboards running Infinity
+    Next.
     """
     context = CONTEXTS.get(imageboard)
     no = context.get("post_fields")[0]
@@ -102,15 +105,16 @@ def get_images_id_based(post: dict, imageboard: str):
     for index, image in enumerate(post.get(files_field, [])):
         pivot = image.get(context.get("image_pivot"))
         original_filename = pivot.get(filename)
-        extension = re.search("(?<=\.).+$", original_filename).group()
+        extension = re.search(r"(?<=\.)\w+$", original_filename).group()
         server_filename = "%s/%d-%d.%s" % (pivot.get(file_id), post.get(no),
                                            index, extension)
         yield (original_filename, server_filename)
 
 
 def iterate_posts(content: dict, imageboard: str):
-    """Unified generator for iterating over all of the posts in a
-    thread's JSON representation.
+    """Generator that simply iterates over every posts in a given thread
+    listing. Used to form a more concrete data structure representing the
+    thread.
     """
     context = CONTEXTS.get(imageboard)
     reply_field = context.get("reply_field")
@@ -129,11 +133,12 @@ def iterate_posts(content: dict, imageboard: str):
             yield post
 
 
+## TODO: Make check more general. <jakob@memeware.net>
 def find_files(posts: list, board: str, imageboard: str):
-    """Generator to iterate over posts and yield a tuple containing the
-    URI and filename for any files it happens to find.
+    """Generalized function to find every file in the given thread.
+    Yields the URI as it is stored on the server, as well as the
+    original filename.
     """
-    ## TODO: Make check more general. <jakob@memeware.net>
     if imageboard == "endchan":
         get_images = get_images_path_based
     elif imageboard == "nextchan":
@@ -147,9 +152,9 @@ def find_files(posts: list, board: str, imageboard: str):
             yield (image_uri, original_filename)
 
 
-def filter_posts(posts: iter, filters: list):
-    """Given an iterable thread, returns an equivalent thread in which
-    all posts that fall under the given list of filters are removed.
+def filter_posts(posts: list, filters: list):
+    """Removes any posts that are covered by a given list of filters
+    from a given thread listing, and returns the new listing.
     """
     for field, pattern in filters:
         filtered = lambda post: not re.search(pattern, str(post.get(field, "")))
@@ -158,8 +163,8 @@ def filter_posts(posts: iter, filters: list):
 
 
 def cache_posts(posts: list, cache: list, imageboard: str):
-    """Removes values of the "posts" attribute of a dictionary if they
-    are in the cache. Any values still remaining will be added to the
+    """Removes any posts that are in a given cache and returns the new
+    listing. Posts that have not already been seen are added to the
     cache.
     """
     context = CONTEXTS.get(imageboard)
@@ -173,7 +178,9 @@ def cache_posts(posts: list, cache: list, imageboard: str):
 
 
 def unescape(text: str) -> str:
-    """Replaces escaped HTML in some text with escape sequences."""
+    """Replaces escaped HTML in a given string with the respective,
+    unescaped characters.
+    """
     for pattern, substitution in SUBSTITUTIONS:
         text = re.sub(pattern, substitution, text)
     return text

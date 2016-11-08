@@ -12,7 +12,8 @@ REGEX_SPECIAL = ".?+()[]/\\"
 def get_path(path: str, mode: str, output_format: str) -> str:
     """Validates the given output path, ensuring that the user has
     sufficient permissions to write there and appending a stock filename
-    if necessary. The finalized path is returned.
+    if necessary. The finalized path is returned, or None if the path
+    was considered to be invalid.
     """
     parent_directory = os.path.dirname(os.path.abspath(path))
 
@@ -60,7 +61,7 @@ def strip_target(target: str) -> tuple:
 
 def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
     """Forms a valid URI for the given board, thread and imageboard.
-    None is returned if the imageboard does not have a known URI.
+    None is returned if the URI could not be created.
     """
     context = CONTEXTS.get(imageboard)
 
@@ -81,11 +82,11 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
 
 
 def get_targets(targets: list, imageboard: str) -> tuple:
-    """Strips the list of given target strings, creating and returning
-    a tuple with a dictionary where the URI for each target points to a
-    list containing the board, whether or not the target refers to a
-    thread, and a space to hold the HTTP Last-Modified header, and any
-    failed target strings.
+    """Strips the list of target strings, creating a dictionary in which
+    each key represents the URI for a target and points to a list
+    containing the board, whether or not the URI refers to a thread,
+    and a container for the HTTP last-modified header. A list of failed
+    targets is also returned.
     """
     target_uris = {}
     failed = []

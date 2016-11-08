@@ -1,4 +1,4 @@
-"""General scraping information related to specific imageboards."""
+"""General information specific to certain imageboards."""
 
 LYNXCHAN_IMAGE_FIELDS = ("originalName", "path", None, "files")
 LYNXCHAN_POST_FIELDS = ("threadId", "creation", "name", "id", "subject",

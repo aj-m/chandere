@@ -6,8 +6,53 @@ import sqlite3
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere2.post import ascii_format_post
-from chandere2.write import (create_archive, insert_to_file)
+from chandere2.post import unescape
+from chandere2.write import (archive_sqlite, create_archive, insert_to_file)
+
+
+class TestArchiveSqlite:
+    @hypothesis.given(st.integers(), st.text(), st.text(), st.text(),
+                      st.text(), st.text(), st.text(),
+                      st.integers(min_value=0, max_value=4294967295))
+    def test_archive_post(self, no, name, trip, sub, com, filename, ext, date):
+        # Hardcoded test for 4chan.
+        create_archive("ar", "sqlite", "archive.db")
+        posts = [{"no": no, "name": name, "trip": trip, "sub": sub, "com": com,
+                  "filename": filename, "ext": ext, "time": date}]
+        archive_sqlite(posts, "archive.db", "4chan")
+        connection = sqlite3.connect("archive.db")
+        cursor = connection.cursor()
+        cursor.execute("SELECT * FROM posts WHERE no = %d;" % no)
+        assert cursor.fetchall() == [(no, date, unescape(name), trip,
+                                      unescape(sub), unescape(com),
+                                      filename + ext if filename else None)]
+        cursor.execute("DELETE FROM posts WHERE no = %d;" % no)
+        connection.commit()
+
+        # Hardcoded test for Endchan.
+        posts = [{"threadId": no, "name": name, "id": trip, "subject": sub,
+                  "markdown": com, "filename": filename, "creation": date}]
+        archive_sqlite(posts, "archive.db", "endchan")
+        cursor.execute("SELECT * FROM posts WHERE no = %d;" % no)
+        assert cursor.fetchall() == [(no, date, unescape(name), trip,
+                                      unescape(sub), unescape(com),
+                                      filename or None)]
+        cursor.execute("DELETE FROM posts WHERE no = %d;" % no)
+        connection.commit()
+
+        # Hardcoded test for Nextchan.
+        # posts = [{"board_id": no, "author": name, "author_id": trip,
+        #           "subject": sub, "content_html": com, "filename": filename,
+        #           "created_at": date}]
+        # archive_sqlite(posts, "archive.db", "nextchan")
+        # cursor.execute("SELECT * FROM posts WHERE no = %d;" % no)
+        # results = list(cursor.fetchall())
+        # assert cursor.fetchall() == [(no, date, unescape(name), trip,
+        #                               unescape(sub), unescape(com),
+        #                               filename or None)]
+        cursor.close()
+        connection.close()
+        os.remove("archive.db")
 
 
 class TestInsertToFile:

@@ -1,16 +1,16 @@
-"""Module for writing scraped information to disk."""
+"""Module for writing scrapad data to disk."""
 
 import os.path
 import re
 import sqlite3
 
 from chandere2.context import CONTEXTS
-from chandere2.post import (ascii_format_post, iterate_posts, unescape)
+from chandere2.post import (ascii_format_post, unescape)
 
 
 def archive_sqlite(posts: list, path: str, imageboard: str):
     """Connects to the Sqlite database located at the given path, and
-    creates an entry for every post found in the content.
+    creates an entry for every post given.
     """
     connection = sqlite3.connect(path)
     cursor = connection.cursor()
@@ -20,7 +20,10 @@ def archive_sqlite(posts: list, path: str, imageboard: str):
 
     for post in posts:
         if post.get(filename):
-            filename = post.get(filename) + post.get(ext)
+            if ext:
+                filename = post.get(filename) + post.get(ext)
+            else:
+                filename = post.get(filename)
         else:
             filename = None
 
@@ -38,8 +41,8 @@ def archive_sqlite(posts: list, path: str, imageboard: str):
 
 
 def archive_plaintext(posts: list, path: str, imageboard: str):
-    """Opens the file located at the given path and inserts a formatted
-    version of each post found in the content.
+    """Opens the text file located at the given path and inserts a
+    formatted version of each post found in the content.
     """
     context = CONTEXTS.get(imageboard)
     no = context.get("post_fields")[0]
@@ -55,9 +58,9 @@ def archive_plaintext(posts: list, path: str, imageboard: str):
 
 
 def insert_to_file(output_file, post: str, parent_id: str, post_id: str):
-    """Finds the location of a given parent post in an archive file, and
-    inserts a post directly below it if a parent id is specified. Otherwise
-    appends it to the bottom of the file.
+    """Finds the location of a given parent post in a text file, and
+    inserts a post directly below it if a parent id is specified.
+    Otherwise appends it to the bottom of the file.
     """
     output_file.seek(0)
     content = output_file.read()

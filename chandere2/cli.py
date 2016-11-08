@@ -1,4 +1,4 @@
-"""Command-line argument definitions."""
+"""Definitions for command-line arguments."""
 
 import argparse
 import textwrap
@@ -50,7 +50,7 @@ META.add_argument(
 META.add_argument(
     "--list-imageboards",
     action="version",
-    version="Available Imageboard Aliases: %s" % ", ".join(CONTEXTS),
+    version="Available Imageboard Aliases:\n * %s" % "\n * ".join(CONTEXTS),
     help="List known imageboard aliases and exit."
 )
 

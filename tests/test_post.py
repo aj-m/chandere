@@ -46,7 +46,7 @@ def test_get_threads_from_catalog(thread, board):
     assert threads == expected
 
     # Hardcoded test for Nextchan.
-    content = [{"post_id": thread}]
+    content = [{"board_id": thread}]
 
     threads = list(get_threads_from_catalog(content, board, "nextchan"))
     expected = [generate_uri(board, str(thread), "nextchan")]
@@ -121,43 +121,39 @@ class TestGetImagesPathBased:
 class TestGetImagesIdBased:
     # Asserts that images are properly parsed
     @hypothesis.given(st.text(), st.integers(), st.integers())
-    def test_get_images(self, filename, file_id, post_id):
+    def test_get_images(self, filename, file_id, board_id):
         content = {
-            "post_id": post_id,
+            "board_id": board_id,
             "attachments": [
                 {
-                    "mime": "img\\/png",
                     "pivot": {
-                        "filename": filename,
+                        "filename": filename + ".png",
                         "file_id": file_id
                     }
                 }
             ]
         }
         parsed = [(filename + ".png",
-                   "%s/%d-%d.%s" % (file_id, post_id, 0, "png"))]
+                   "%s/%d-%d.%s" % (file_id, board_id, 0, "png"))]
 
         # Hardcoded test for Nextchan.
         assert list(get_images_id_based(content, "nextchan")) == parsed
 
-
     # Asserts that multiple images can be parsed out of one post.
     @hypothesis.given(st.text(), st.integers(), st.integers())
-    def test_get_several_images(self, filename, file_id, post_id):
+    def test_get_several_images(self, filename, file_id, board_id):
         content = {
-            "post_id": post_id,
+            "board_id": board_id,
             "attachments": [
                 {
-                    "mime": "img\\/png",
                     "pivot": {
-                        "filename": filename,
+                        "filename": filename + ".png",
                         "file_id": file_id
                     }
                 },
                 {
-                    "mime": "img\\/png",
                     "pivot": {
-                        "filename": filename,
+                        "filename": filename + ".png",
                         "file_id": file_id
                     }
                 }
@@ -165,9 +161,9 @@ class TestGetImagesIdBased:
         }
 
         parsed = [(filename + ".png",
-                   "%s/%d-%d.%s" % (file_id, post_id, 0, "png")),
+                   "%s/%d-%d.%s" % (file_id, board_id, 0, "png")),
                   (filename + ".png",
-                   "%s/%d-%d.%s" % (file_id, post_id, 1, "png"))]
+                   "%s/%d-%d.%s" % (file_id, board_id, 1, "png"))]
 
         # Hardcoded test for Nextchan.
         assert list(get_images_id_based(content, "nextchan")) == parsed
@@ -276,12 +272,11 @@ def test_find_files(name, extension, board, tim):
 
     # Hardcoded example post for Infinity Next styled imageboards.
     content = [{
-        "post_id": tim,
+        "board_id": tim,
         "attachments": [
             {
-                "mime": "img\\/png",
                 "pivot": {
-                    "filename": name,
+                    "filename": name + ".png",
                     "file_id": tim
                 }
             }
@@ -352,9 +347,9 @@ class TestCachePosts:
 
         # Hardcoded test for Nextchan.
         cache = []
-        posts = [{"post_id": first_id}]
+        posts = [{"board_id": first_id}]
         posts = cache_posts(posts, cache, "nextchan")
-        assert posts == [{"post_id": first_id}]
+        assert posts == [{"board_id": first_id}]
         assert cache == [first_id]
 
     @hypothesis.given(st.integers(), st.integers())
@@ -392,9 +387,9 @@ class TestCachePosts:
 
         # Hardcoded test for Nextchan.
         cache = [first_id]
-        posts = [{"post_id": first_id}, {"post_id": second_id}]
+        posts = [{"board_id": first_id}, {"board_id": second_id}]
         posts = cache_posts(posts, cache, "nextchan")
-        assert posts == [{"post_id": second_id}]
+        assert posts == [{"board_id": second_id}]
         assert cache == [first_id, second_id]
 
 
