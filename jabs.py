@@ -14,10 +14,10 @@ __author__ = "Jakob Tsar-Fox <jakob@memeware.net>"
 __licence__ = "GPLv3"
 __version__ = "1.0.0.dev1"
 
-COLORS = {"okay": "\033[m",
-          "error": "\033[91m",
+COLORS = {"good": "\033[92m",
+          "okay": "\033[m",
           "warning": "\033[93m",
-          "good": "\033[92m"}
+          "error": "\033[91m"}
 
 EOL = "\n"
 
@@ -29,7 +29,9 @@ SOURCES = ("cli.py", "connection.py", "context.py", "core.py",
 
 
 def write_message(text: str, level="okay") -> None:
-    """Writes the given text with the given loglevel."""
+    """Writes the text to either stdout or stderr depending upon whether
+    or not the loglevel is "error", with a short colored prefix.
+    """
     text = "[%s*%s] " % (COLORS.get(level, "okay"), COLORS["okay"]) + text
     output = sys.stderr if level == "error" else sys.stdout
     output.write(text + "\n")
@@ -57,7 +59,7 @@ def get_package_entry_point(source: str) -> str:
 
 
 def get_class_definitions(source: str) -> list:
-    """Returns a list containing all class definitions."""
+    """Finds all class definitions in the package."""
     definitions = []
     for header_match in re.finditer(r"class .+?\n", source):
         definition = header_match.group()
@@ -69,10 +71,10 @@ def get_class_definitions(source: str) -> list:
     return definitions
 
 
-def find_import_statements(source: str) -> list:
-    """Given a readable source file, extracts every import statements
-    and returns a list containing them. Import statements containing
-    the PACKAGE_NAME are discarded.
+def get_import_statements(source: str) -> list:
+    """Finds all import statements in the package that do not contain
+    the PACKAGE_NAME, as those dependencies will be resolved by the
+    compilation process.
     """
     import_statements = []
     lines = source.split(EOL)
@@ -103,7 +105,9 @@ def find_import_statements(source: str) -> list:
 
 
 def check_dependencies(import_statements: list) -> list:
-    """[Document me!]"""
+    """Checks each import statement to see if the package is installed
+    and importable on the system. Any failed dependencies are returned.
+    """
     failed = []
     for dependency in import_statements:
         dependency = re.search(r"(?<=import )[^.]*", dependency).group()
@@ -122,12 +126,12 @@ def write_metadata(destination, metadata: tuple) -> None:
 
 
 def write_import_statements(destination, import_statements: list) -> None:
-    """Writes the import statements to the given destination."""
+    """Writes all import statements into the given destination file."""
     destination.write("\n".join(sorted(set(import_statements))) + "\n\n")
 
 
 def write_entry_point(destination, entry_point: str) -> None:
-    """Writes the entry point to the given destination."""
+    """Writes the entry point into the given destination file."""
     destination.write(entry_point + "\n")
 
 
@@ -152,7 +156,6 @@ def parse_arguments(argv: list) -> None:
 
 def main(argv: list) -> None:
     """Entry point to the compilation script."""
-
     write_message("Welcome to JABS - Jakob's Awesome Build Script", "good")
 
     import_statements = []
@@ -160,8 +163,7 @@ def main(argv: list) -> None:
     for source_file in SOURCES + (ENTRY_POINT,):
         with open(os.path.join(PACKAGE_NAME, source_file)) as source:
             code = source.read()
-            import_statements += find_import_statements(code)
-
+            import_statements += get_import_statements(code)
 
     ## TODO: -f, --force option.
     failed_dependencies = check_dependencies(import_statements)
@@ -185,7 +187,7 @@ def main(argv: list) -> None:
 
     with open(os.path.join(PACKAGE_NAME, ENTRY_POINT)) as source:
         code = source.read()
-        import_statements += find_import_statements(code)
+        import_statements += get_import_statements(code)
         entry_point = get_package_entry_point(code)
 
     print(class_definitions)

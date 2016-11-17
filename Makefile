@@ -1,15 +1,7 @@
 DOCPATH := docs
 PYTHONPATH := .
 
-NUITKAFLAGS := --show-progress --remove-output
-
 .PHONY: test doc
-
-
-# Executable compilation
-executable:
-	nuitka $(NUITKAFLAGS) --recurse-all chandere2/__main__.py
-	mv __main__.exe chandere2
 
 
 # Script compilation

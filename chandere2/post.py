@@ -56,6 +56,9 @@ def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     uri = [context.get("image_uri")]
     if context.get("board_in_image_uri"):
         uri.append(board)
+        # Temporary (?) fix.
+        if imageboard == "8chan":
+            uri.append("src")
     if context.get("image_dir"):
         uri.append(context.get("image_dir"))
     uri.append(filename)
