@@ -5,6 +5,7 @@ multiple Python source files and compiling them into a single,
 portable Python script.
 """
 
+import imp
 import os.path
 import re
 import sys
@@ -34,35 +35,47 @@ def write_message(text: str, level="okay") -> None:
     output.write(text + "\n")
 
 
-def get_package_metadata(source) -> tuple:
+def get_package_metadata(source: str) -> tuple:
     """Finds the package description, and a list containing any other
     metadata embedded in the given source file.
     """
-    source_content = source.read()
     metadata = []
-    description_match = re.search(r"\"\"\".*?\"\"\"", source_content, re.S)
+    description_match = re.search(r"\"\"\".*?\"\"\"", source, re.S)
     if description_match:
         package_description = description_match.group()
     else:
         package_description = "\"\"\"[No Script Docstring]\"\"\""
-    for variable in re.findall(r"__.+?__ = .+", source_content):
+    for variable in re.findall(r"__.+?__ = .+", source):
         metadata.append(variable)
     return (package_description, metadata)
 
 
-def get_package_entry_point(source) -> str:
+def get_package_entry_point(source: str) -> str:
     """Finds the package's entry point."""
-    entry_point_match = re.search(r"if __name__ == \"__main__\":.*", source.read(), re.S)
+    entry_point_match = re.search(r"if __name__ == \"__main__\":.*", source, re.S)
     return entry_point_match.group() if entry_point_match else None
 
 
-def find_import_statements(source) -> list:
+def get_class_definitions(source: str) -> list:
+    """Returns a list containing all class definitions."""
+    definitions = []
+    for header_match in re.finditer(r"class .+?\n", source):
+        definition = header_match.group()
+        for line in source[header_match.end():].split("\n"):
+            if line == "" or line.startswith("    "):
+                definition += "\n" + line
+            else:
+                break
+    return definitions
+
+
+def find_import_statements(source: str) -> list:
     """Given a readable source file, extracts every import statements
     and returns a list containing them. Import statements containing
     the PACKAGE_NAME are discarded.
     """
     import_statements = []
-    lines = source.read().split(EOL)
+    lines = source.split(EOL)
     text = ""
     for index, line in enumerate(lines):
         statement = re.search(r"(from .*)?import .*", line)
@@ -87,6 +100,18 @@ def find_import_statements(source) -> list:
             if ")" in text:
                 import_statements.append(text)
     return import_statements
+
+
+def check_dependencies(import_statements: list) -> list:
+    """[Document me!]"""
+    failed = []
+    for dependency in import_statements:
+        dependency = re.search(r"(?<=import )[^.]*", dependency).group()
+        try:
+            imp.find_module(dependency)
+        except ImportError:
+            failed.append(dependency)
+    return failed
 
 
 def write_metadata(destination, metadata: tuple) -> None:
@@ -130,24 +155,46 @@ def main(argv: list) -> None:
 
     write_message("Welcome to JABS - Jakob's Awesome Build Script", "good")
 
-    with open("/".join((PACKAGE_NAME, METADATA))) as source:
-        metadata = get_package_metadata(source)
-
     import_statements = []
-    for source_file in SOURCES:
-        with open("/".join((PACKAGE_NAME, source_file))) as source:
-            import_statements += find_import_statements(source)
+    write_message("Collecting dependencies...")
+    for source_file in SOURCES + (ENTRY_POINT,):
+        with open(os.path.join(PACKAGE_NAME, source_file)) as source:
+            code = source.read()
+            import_statements += find_import_statements(code)
 
-    with open("/".join((PACKAGE_NAME, ENTRY_POINT))) as source:
-        import_statements += find_import_statements(source)
-        source.seek(0)
-        entry_point = get_package_entry_point(source)
-    print(metadata, import_statements, entry_point)
+
+    ## TODO: -f, --force option.
+    failed_dependencies = check_dependencies(import_statements)
+    for dependency in failed_dependencies:
+        write_message("Could not import %s!" % dependency, "error")
+    if failed_dependencies:
+        write_message("Build failed.", "error")
+        sys.exit(1)
+    write_message("All dependencies resolved!", "good")
+
+    write_message("Collecting package metadata...", "okay")
+    with open("/".join((PACKAGE_NAME, METADATA))) as source:
+        metadata = get_package_metadata(source.read())
+
+    write_message("Finding code...", "okay")
+    class_definitions = []
+    for source_file in SOURCES + (ENTRY_POINT,):
+        with open(os.path.join(PACKAGE_NAME, source_file)) as source:
+            code = source.read()
+            class_definitions += get_class_definitions(code)
+
+    with open(os.path.join(PACKAGE_NAME, ENTRY_POINT)) as source:
+        code = source.read()
+        import_statements += find_import_statements(code)
+        entry_point = get_package_entry_point(code)
+
+    print(class_definitions)
 
     with open(argv[1], "w+") as output_script:
         write_metadata(output_script, metadata)
         write_import_statements(output_script, import_statements)
         write_entry_point(output_script, entry_point)
+    write_message("All done!", "good")
 
 
 if __name__ == "__main__":
