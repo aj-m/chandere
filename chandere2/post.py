@@ -107,7 +107,7 @@ def get_images_id_based(post: dict, imageboard: str):
         pivot = image.get(context.get("image_pivot"))
         original_filename = pivot.get(filename)
         extension = re.search(r"(?<=\.)\w+$", original_filename).group()
-        gmtime = time.strptime(image.get("last_uploaded_at", ""),
+        gmtime = time.strptime(image.get("first_uploaded_at", ""),
                                "%Y-%m-%d %H:%M:%S")
         time_id = calendar.timegm(gmtime)
         server_filename = "%s/%d-%d.%s" % (pivot.get(attachment_id),
