@@ -126,7 +126,7 @@ class TestGetImagesIdBased:
             "board_id": board_id,
             "attachments": [
                 {
-                    "last_uploaded_at": "2001-11-09 14:54:22",
+                    "first_uploaded_at": "2001-11-09 14:54:22",
                     "pivot": {
                         "filename": filename + ".png",
                         "attachment_id": file_id
@@ -147,14 +147,14 @@ class TestGetImagesIdBased:
             "board_id": board_id,
             "attachments": [
                 {
-                    "last_uploaded_at": "2001-11-09 14:54:22",
+                    "first_uploaded_at": "2001-11-09 14:54:22",
                     "pivot": {
                         "filename": filename + ".png",
                         "attachment_id": file_id
                     }
                 },
                 {
-                    "last_uploaded_at": "2001-11-09 14:54:22",
+                    "first_uploaded_at": "2001-11-09 14:54:22",
                     "pivot": {
                         "filename": filename + ".png",
                         "attachment_id": file_id
@@ -278,7 +278,7 @@ def test_find_files(name, extension, board, tim):
         "board_id": tim,
         "attachments": [
             {
-                "last_uploaded_at": "2001-11-09 14:54:22",
+                "first_uploaded_at": "2001-11-09 14:54:22",
                 "pivot": {
                     "filename": name + ".png",
                     "attachment_id": tim
