@@ -26,7 +26,7 @@ CONTEXTS = {
     "8chan": {"uri": "8ch.net",
               "threads_endpoint": "threads.json",
               "image_uri": "media.8ch.net",
-              "image_dir": None,
+              "image_dir": "src",
               "board_in_image_uri": True,
               "delimiter": "res",
               "image_fields": VICHAN_IMAGE_FIELDS,

@@ -22,14 +22,18 @@ Primary Features
 Installation
 ------------
 
-Currently, the most reliable way to install Chandere2 is through Pip.
+**Arch Linux** users are able to install Chandere2 using Pacman. It is packaged in the [AUR.](https://aur.archlinux.org/packages/chandere2/)
+
+    $ makepkg -si
+
+If you are running a distribution for which Chandere2 is not packaged, or are not running Linux, the most reliable way to install Chandere2 is through Pip.
 
     $ # It is recommended that you use the latest version of pip and setuptools when installing Chandere.
     $ pip install --upgrade pip setuptools
 
     $ pip install --upgrade chandere2
 
-Alternatively, setup.py in the repository's root directory can be used. Using Pip is recommended over this method.
+Alternatively, setup.py in the repository's root directory can be used. This is not recommended.
 
     # python setup.py install
 

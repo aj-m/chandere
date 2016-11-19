@@ -208,7 +208,7 @@ def test_get_image_uri(name, extension, board):
 
     # Hardcoded test for 8chan.
     uri = get_image_uri(filename, board, "8chan")
-    parsed = "/".join(("media.8ch.net/file_store", filename))
+    parsed = "/".join(("media.8ch.net", board, "src", filename))
     assert uri == parsed
 
     # Hardcoded test for Lainchan.
