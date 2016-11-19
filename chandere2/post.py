@@ -1,5 +1,6 @@
 """Module for working with posts and thread endpoints."""
 
+import calendar
 import re
 import textwrap
 import time
@@ -100,14 +101,17 @@ def get_images_id_based(post: dict, imageboard: str):
     """
     context = CONTEXTS.get(imageboard)
     no = context.get("post_fields")[0]
-    filename, file_id, _, files_field = context.get("image_fields")
+    filename, attachment_id, _, files_field = context.get("image_fields")
 
     for index, image in enumerate(post.get(files_field, [])):
         pivot = image.get(context.get("image_pivot"))
         original_filename = pivot.get(filename)
         extension = re.search(r"(?<=\.)\w+$", original_filename).group()
-        server_filename = "%s/%d-%d.%s" % (pivot.get(file_id), post.get(no),
-                                           index, extension)
+        gmtime = time.strptime(image.get("last_uploaded_at", ""),
+                               "%Y-%m-%d %H:%M:%S")
+        time_id = calendar.timegm(gmtime)
+        server_filename = "%s/%d-%d.%s" % (pivot.get(attachment_id),
+                                           time_id, index, extension)
         yield (original_filename, server_filename)
 
 
