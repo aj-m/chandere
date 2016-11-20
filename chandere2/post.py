@@ -19,8 +19,10 @@ def get_threads_from_endpoint(content: list, board: str, imageboard: str):
     """Thread parsing function for imageboards that supply a normal
     threads.json endpoint.
     """
-    for thread in sum([page.get("threads") for page in content], []):
-        thread_no = str(thread.get("no"))
+    context = CONTEXTS.get(imageboard)
+    no, threads = context.get("thread_fields")
+    for thread in sum([page.get(threads) for page in content], []):
+        thread_no = str(thread.get(no))
         yield generate_uri(board, thread_no, imageboard)
 
 
@@ -29,7 +31,7 @@ def get_threads_from_catalog(content: list, board: str, imageboard: str):
     offer a threads.json endpoint, but instead offer a catalog.json.
     """
     context = CONTEXTS.get(imageboard)
-    no = context.get("post_fields")[0]
+    no, _ = context.get("thread_fields")
     for thread in content:
         thread_no = str(thread.get(no))
         yield generate_uri(board, thread_no, imageboard)
@@ -194,7 +196,8 @@ def ascii_format_post(post: dict, imageboard: str):
     """Returns an ASCII-formtted version of the given post."""
     context = CONTEXTS.get(imageboard)
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
-    string = ["=" * 80, "Post ID: %s" % post.get(no)]
+    alternative_no, _ = context.get("thread_fields")
+    string = ["=" * 80, "Post ID: %s" % post.get(no, post.get(alternative_no))]
 
     if isinstance(post.get(date), int):
         date = time.ctime(post.get(date))

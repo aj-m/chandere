@@ -48,13 +48,18 @@ def archive_plaintext(posts: list, path: str, imageboard: str):
     no = context.get("post_fields")[0]
     parent = None
 
+    resto = context.get("resto")
+    alternative_no, _ = context.get("thread_fields")
+
     with open(path, "r+") as output_file:
         for post in posts:
             formatted = ascii_format_post(post, imageboard)
             insert_to_file(output_file, formatted, parent, post.get(no))
 
-            if post.get("resto", 0) == 0:
+            if resto and post.get(resto, 0) == 0:
                 parent = post.get(no)
+            elif not resto and post.get(alternative_no):
+                parent = post.get(alternative_no)
 
 
 def insert_to_file(output_file, post: str, parent_id: str, post_id: str):
@@ -65,16 +70,16 @@ def insert_to_file(output_file, post: str, parent_id: str, post_id: str):
     output_file.seek(0)
     content = output_file.read()
 
-    if re.search(r"Post: %s" % post_id, content):
+    if re.search(r"Post ID: %s\n" % post_id, content):
         pass
 
     else:
-        search = re.search(r"Post: %s.*?\*{80}(?=\n\n\n)" % parent_id,
+        search = re.search(r"Post ID: %s\n.*?={80}(?=\n\n)" % parent_id,
                            content, re.DOTALL)
 
         if parent_id and search:
             split = search.end()
-            content = content[:split + 1] + post + content[split + 1:]
+            content = content[:split + 1] + post.strip() + content[split + 1:]
             output_file.seek(0)
             output_file.write(content)
         else:

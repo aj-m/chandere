@@ -4,11 +4,6 @@ PYTHONPATH := .
 .PHONY: test doc
 
 
-# Script compilation
-script:
-	python compile.py chandere2.py
-
-
 # Manpage compression
 doc: $(DOCPATH)/chandere2.1.gz
 $(DOCPATH)/chandere2.1.gz: $(DOCPATH)/chandere2.1

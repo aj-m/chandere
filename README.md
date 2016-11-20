@@ -3,7 +3,7 @@
 ## A command-line utility programmed and maintained by [Jakob.](http://tsar-fox.com/)
 An asynchronous image/file downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
 
-Chandere2 is a complete rewrite of Chandere using asynchronous concurrency. Its goals are to be as fast and as universal as possible.
+Chandere2 is a complete rewrite of Chandere using asynchronous concurrency. Its goals are to be fast and as universal as possible.
 
 Chandere2 is free software, licensed under the [GNU General Public License.](http://gnu.org/licenses/gpl.html)
 
@@ -36,6 +36,11 @@ If you are running a distribution for which Chandere2 is not packaged, or are no
 Alternatively, setup.py in the repository's root directory can be used. This is not recommended.
 
     # python setup.py install
+
+If Chandere2 is installed with Pip or setup.py, you will have to manually gzip the manpages and move them to wherever manpages are located on your system.
+
+   $ make doc
+   # cp docs/chandere2.1.gz /usr/share/man/man1 # The destination path may be different on your system.
 
 
 Tutorial
