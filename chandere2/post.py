@@ -225,7 +225,7 @@ def ascii_format_post(post: dict, imageboard: str):
 
     string.append("=" * 80)
 
-    body = unescape(post.get(com, ""))
+    body = unescape(post.get(com, "")).strip()
     wrap = lambda line: textwrap.wrap(line, width=80, replace_whitespace=False)
 
     for line in body.splitlines():

@@ -3,7 +3,7 @@ Change Log
 This document records all notable changes to Chandere2.
 
 
-**Version 2.4.0**
+**Version 2.3.1**
 -----------------
 * Fixed issues with image downloading on 8chan and Nextchan.
 * Fixed issue regarding archiving to plaintext for Endchan and Nextchan.

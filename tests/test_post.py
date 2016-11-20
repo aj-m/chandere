@@ -344,9 +344,9 @@ class TestCachePosts:
 
         # Hardcoded test for Endchan.
         cache = []
-        posts = [{"threadId": first_id}]
+        posts = [{"postId": first_id}]
         posts = cache_posts(posts, cache, "endchan")
-        assert posts == [{"threadId": first_id}]
+        assert posts == [{"postId": first_id}]
         assert cache == [first_id]
 
         # Hardcoded test for Nextchan.
@@ -384,9 +384,9 @@ class TestCachePosts:
 
         # Hardcoded test for Endchan.
         cache = [first_id]
-        posts = [{"threadId": first_id}, {"threadId": second_id}]
+        posts = [{"postId": first_id}, {"postId": second_id}]
         posts = cache_posts(posts, cache, "endchan")
-        assert posts == [{"threadId": second_id}]
+        assert posts == [{"postId": second_id}]
         assert cache == [first_id, second_id]
 
         # Hardcoded test for Nextchan.

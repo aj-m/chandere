@@ -56,7 +56,7 @@ def archive_plaintext(posts: list, path: str, imageboard: str):
             formatted = ascii_format_post(post, imageboard)
             insert_to_file(output_file, formatted, parent, post.get(no))
 
-            if resto and post.get(resto, 0) == 0:
+            if resto and post.get(resto) == 0 or post.get(resto) == None:
                 parent = post.get(no)
             elif not resto and post.get(alternative_no):
                 parent = post.get(alternative_no)
@@ -81,7 +81,7 @@ def insert_to_file(output_file, post: str, parent_id: str, post_id: str):
             split = search.end()
             content = content[:split + 1] + post.strip() + content[split + 1:]
             output_file.seek(0)
-            output_file.write(content)
+            output_file.write(content + "\n")
         else:
             output_file.seek(0, 2)
             output_file.write(post + "\n\n\n")
