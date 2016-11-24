@@ -3,6 +3,11 @@ Change Log
 This document records all notable changes to Chandere2.
 
 
+**Version 2.3.1.post1**
+-----------------------
+* Very minor bugfix for the changed 8chan API.
+
+
 **Version 2.3.1**
 -----------------
 * Fixed issues with image downloading on 8chan and Nextchan.
