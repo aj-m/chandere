@@ -1,4 +1,4 @@
-## Tests assume that an internet connection is available.
+## Tests will fail if an internet connection is not present.
 
 import asyncio
 import os
@@ -10,8 +10,8 @@ from dummy_output import FakeOutput
 
 
 class TestTryConnection:
-    # Test asserts that HTTP headers are written to stdout.
-    def test_report_successful_connection(self):
+    # Asserts that connection headers are written to stdout.
+    def test_successful_connection(self):
         fake_stdout = FakeOutput()
         fake_stderr = FakeOutput()
         fake_output = Console(output=fake_stdout, error=fake_stderr)
@@ -24,8 +24,8 @@ class TestTryConnection:
         loop.run_until_complete(target_operation)
         assert ">" in fake_stdout.last_received
 
-    # Test asserts that "FAILED" is written to stderr.
-    def test_report_failed_connection(self):
+    # Asserts that "FAILED" is written to stderr.
+    def test_failed_connection(self):
         fake_stdout = FakeOutput()
         fake_stderr = FakeOutput()
         fake_output = Console(output=fake_stdout, error=fake_stderr)
@@ -41,7 +41,7 @@ class TestTryConnection:
 
 class TestFetchUri:
     # Asserts that a proper connection was made and returned.
-    def test_fetch_uri_successfully(self):
+    def test_successful_fetch(self):
         loop = asyncio.get_event_loop()
         target_operation = fetch_uri("a.4cdn.org/g/threads.json", "", False)
 
@@ -55,7 +55,7 @@ class TestFetchUri:
         loop.run_until_complete(check_return_value())
 
     # Asserts that a connection wasn't made and was properly handled.
-    def test_error_on_failed_connection(self):
+    def test_failed_fetch(self):
         loop = asyncio.get_event_loop()
         target_operation = fetch_uri("a.4cdn.org/z/threads.json", "", False)
 
@@ -70,8 +70,8 @@ class TestFetchUri:
 
 
 class TestDownloadFile:
-    # Asserts that a file was created, implying successful connection.
-    def test_successful_image_download(self):
+    # Asserts that the file was created.
+    def test_successful_download(self):
         loop = asyncio.get_event_loop()
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
         target_operation = download_file(target_uri, ".", "gnu.png", False)
@@ -81,8 +81,8 @@ class TestDownloadFile:
 
         os.remove("gnu.png")
 
-    # Asserts that the file does not exist, implying a failed connection.
-    def test_failed_image_download(self):
+    # Asserts that the file does not exist.
+    def test_failed_download(self):
         loop = asyncio.get_event_loop()
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.gif"
         target_operation = download_file(target_uri, ".", "gnu.gif", False)
@@ -91,8 +91,7 @@ class TestDownloadFile:
 
         assert not os.path.exists("gnu.gif")
 
-    # Asserts that each time a file is downloaded,
-    # "(Copy) " is prepended to the filename
+    # Asserts that "(Copy)" is successfully prepended to the filename.
     def test_prepend_copy(self):
         loop = asyncio.get_event_loop()
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
@@ -110,15 +109,13 @@ class TestDownloadFile:
         os.remove("(Copy) (Copy) gnu.png")
 
 
-## FIXME: Doesn't test for semaphore's presence. <jakob@memeware.net>
-class TestWrapSemaphore:
-    # Asserts that the coroutine returned runs normally.
-    def test_wrap_semaphore(self):
-        loop = asyncio.get_event_loop()
+# Asserts that the coroutine returned runs normally.
+def test_wrap_semaphore():
+    loop = asyncio.get_event_loop()
 
-        async def dummy_coroutine():
-            return True
+    async def dummy_coroutine():
+        return True
 
-        semaphore = asyncio.Semaphore(1)
-        coroutine = wrap_semaphore(dummy_coroutine(), semaphore)
-        assert loop.run_until_complete(coroutine)
+    semaphore = asyncio.Semaphore(1)
+    coroutine = wrap_semaphore(dummy_coroutine(), semaphore)
+    assert loop.run_until_complete(coroutine)

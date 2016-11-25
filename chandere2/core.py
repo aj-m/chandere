@@ -40,6 +40,8 @@ def main(args=PARSER.parse_args(), output=None):
     for argument in failed:
         output.write_error("Invalid filter pattern \"%s\"" % argument)
 
+    create_archive(args.mode, args.output_format, path)
+
     try:
         loop = asyncio.get_event_loop()
         loop.add_signal_handler(signal.SIGINT, clean_up)
@@ -63,26 +65,36 @@ def clean_up():
         task.cancel()
 
 
+async def handle_file(filename: str, image: str, path: str, ssl: bool, output):
+    """Coroutine to handle a file downloading."""
+    output.write_debug("File %s found at %s." % (filename, image))
+    output.write("Downloading \"%s\"..." % filename)
+    if await download_file(image, path, filename, ssl):
+        output.write("Downloaded %s." % filename)
+    else:
+        output.write_error("Could not download %s." % filename)
+
+
 async def main_loop(target_uris: dict, path: str, filters: list, args, output):
-    """Asynchronous loop that iterates over targets, calling upon other
-    coroutines respective to the mode of operation to process them.
+    """Loop to make sure targets get handled. Calls upon other
+    coroutines to handle them as they are connected to, as well as
+    deciding whether or not the program has finished.
     """
     cache = []
-    iterations = 0
+    iteration = 0
     imageboard = args.imageboard
-    create_archive(args.mode, args.output_format, path)
 
-    output.write_debug("Entering main loop")
-
+    output.write_debug("Entering the main loop.")
     while True:
-        iterations += 1
+        iteration += 1
         operations = []
-        output.write_debug("Starting iteration %d." % iterations)
+        output.write_debug("Starting iteration %d." % iteration)
 
         if args.nocap:
             for uri in target_uris:
                 last_load = target_uris[uri][2]
-                operations.append(fetch_uri(uri, last_load, args.ssl))
+                target_operation = fetch_uri(uri, last_load, args.ssl)
+                operations.append(target_operation)
         else:
             connection_cap = asyncio.Semaphore(MAX_CONNECTIONS)
             for uri in target_uris:
@@ -91,56 +103,45 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
                 wrapped = wrap_semaphore(target_operation, connection_cap)
                 operations.append(wrapped)
 
-
         for future in asyncio.as_completed(operations):
             try:
                 content, error, last_load, uri = await future
             except aiohttp.errors.ClientOSError:
                 output.write_error("Exception caught. The imageboard may "
-                                   "require an SSL connection - run chandere2 "
+                                   "require an SSL connection - run Chandere2 "
                                    "with the '--ssl' flag.")
                 continue
-            board, thread, _ = target_uris[uri]
-            output.write_debug("Connected to %s..." % uri)
-
-            if error:
-                if error == 404:
-                    output.write_error("%s does not exist." % uri)
-                else:
-                    output.write_error("Could not connect to server.")
+            if error == 404:
+                output.write_error("%s does not exist." % uri)
+                del target_uris[uri]
+                continue
+            elif error:
+                output.write_error("Could not connect to imageboard.")
                 del target_uris[uri]
                 continue
 
+            board, thread, _ = target_uris[uri]
+            output.write_debug("Connection made to %s..." % uri)
 
-            if thread and args.mode == "fd":
-                posts = iterate_posts(content, imageboard)
-                posts = filter_posts(posts, filters)
-                posts = cache_posts(posts, cache, imageboard)
-                for image, filename in find_files(posts, board, imageboard):
-                    output.write_debug("File %s at %s." % (filename, image))
-                    output.write("Downloading \"%s\"..." % filename)
-                    if await download_file(image, path, filename, args.ssl):
-                        output.write("Successfully downloaded %s." % filename)
-                    else:
-                        output.write_error("Could not download %s." % filename)
-            elif thread and args.mode == "ar":
-                posts = iterate_posts(content, imageboard)
-                posts = filter_posts(posts, filters)
-                posts = cache_posts(posts, cache, imageboard)
-                if args.output_format == "sqlite":
-                    archive_sqlite(posts, path, imageboard)
-                else:
-                    archive_plaintext(posts, path, imageboard)
-            else:
-                for uri in get_threads(content, board, args.imageboard):
+            if not thread:
+                for uri in get_threads(content, board, imageboard):
                     target_uris[uri] = [board, True, ""]
-
-            if last_load is not None:
-                target_uris[uri][2] = last_load
+            else:
+                posts = iterate_posts(content, imageboard)
+                posts = filter_posts(posts, filters)
+                posts = cache_posts(posts, cache, imageboard)
+                if args.mode == "fd":
+                    for image, name in find_files(posts, board, imageboard):
+                        await handle_file(name, image, path, args.ssl, output)
+                elif args.mode == "ar":
+                    if args.output_format == "sqlite":
+                        archive_sqlite(posts, path, imageboard)
+                    else:
+                        archive_plaintext(posts, path, imageboard)
 
         if args.continuous:
             pass
         elif all(thread for _, thread, _ in target_uris.values()):
             break
-        elif iterations > 1:
+        elif iteration > 1:
             break
