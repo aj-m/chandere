@@ -76,8 +76,7 @@ class TestDownloadFile:
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
         target_operation = download_file(target_uri, ".", "gnu.png", False)
 
-        loop.run_until_complete(target_operation)
-
+        assert loop.run_until_complete(target_operation)
         assert os.path.exists("gnu.png")
 
         os.remove("gnu.png")
@@ -88,7 +87,7 @@ class TestDownloadFile:
         target_uri = "wiki.installgentoo.com/images/a/a8/GNU.gif"
         target_operation = download_file(target_uri, ".", "gnu.gif", False)
 
-        loop.run_until_complete(target_operation)
+        assert not loop.run_until_complete(target_operation)
 
         assert not os.path.exists("gnu.gif")
 
@@ -100,7 +99,7 @@ class TestDownloadFile:
 
         for _ in range(3):
             target_operation = download_file(target_uri, ".", "gnu.png", False)
-            loop.run_until_complete(target_operation)
+            assert loop.run_until_complete(target_operation)
 
         assert os.path.exists("gnu.png")
         assert os.path.exists("(Copy) gnu.png")

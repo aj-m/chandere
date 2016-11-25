@@ -119,7 +119,10 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
                 for image, filename in find_files(posts, board, imageboard):
                     output.write_debug("File %s at %s." % (filename, image))
                     output.write("Downloading \"%s\"..." % filename)
-                    await download_file(image, path, filename, args.ssl)
+                    if await download_file(image, path, filename, args.ssl):
+                        output.write("Successfully downloaded %s." % filename)
+                    else:
+                        output.write_error("Could not download %s." % filename)
             elif thread and args.mode == "ar":
                 posts = iterate_posts(content, imageboard)
                 posts = filter_posts(posts, filters)

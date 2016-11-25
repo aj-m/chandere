@@ -51,7 +51,7 @@ async def fetch_uri(uri: str, last_load: str, use_ssl: bool) -> tuple:
     return (content, error, last_load, uri)
 
 
-async def download_file(uri: str, path: str, name: str, use_ssl: bool):
+async def download_file(uri: str, path: str, name: str, use_ssl: bool) -> bool:
     """Tries to get the binary data at the given URI, copying it into
     the given output path. If a file already exists at the given output
     path, "(Copy)" will be prepended to the filename.
@@ -66,6 +66,8 @@ async def download_file(uri: str, path: str, name: str, use_ssl: bool):
             if response.status == 200:
                 with open(os.path.join(path, name), "wb+") as output_file:
                     output_file.write(await response.read())
+
+            return response.status == 200
 
 
 async def wrap_semaphore(coroutine, semaphore):

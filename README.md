@@ -7,7 +7,7 @@ Chandere2 is a complete rewrite of Chandere using asynchronous concurrency. Its 
 
 Chandere2 is free software, licensed under the [GNU General Public License.](http://gnu.org/licenses/gpl.html)
 
-[![Build Status](https://travis-ci.org/TsarFox/chandere2.svg?branch=master)](https://travis-ci.org/TsarFox/chandere2)  [![PyPI Downloads](https://img.shields.io/pypi/dm/Chandere2.svg)](https://pypi.python.org/pypi/Chandere2/)  [![License](https://img.shields.io/github/license/tsarfox/chandere2.svg)](https://www.gnu.org/licenses/gpl.html)
+[![Build Status](https://travis-ci.org/TsarFox/chandere2.svg?branch=master)](https://travis-ci.org/TsarFox/chandere2)  [![PyPI Version](https://img.shields.io/pypi/v/Chandere2.svg)](https://pypi.python.org/pypi/Chandere2/)  [![AUR Version](https://img.shields.io/aur/version/chandere2.svg)](https://aur.archlinux.org/packages/chandere2/)  [![License](https://img.shields.io/github/license/tsarfox/chandere2.svg)](https://www.gnu.org/licenses/gpl.html)
 
 
 Primary Features
