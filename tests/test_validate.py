@@ -12,53 +12,29 @@ from chandere2.validate import (convert_to_regexp, generate_uri,
 
 class TestGetPath:
     # Asserts that write permissions are properly checked.
-    # Expected permissions for the root directory and the CWD are not
-    # hardcoded, as the permissions may vary on other machines.
-    def test_check_output_permissions(self):
-        access = bool(get_path("/", "", ""))
-        assert os.access("/", os.W_OK) == access
+    def test_check_output_permissions(self, monkeypatch):
+        monkeypatch.setattr("os.access", lambda *args: False)
+        assert get_path("/", "ar", "plaintext") is None
+        assert get_path("/etc/hosts", "ar", "plaintext") is None
 
-        access = bool(get_path(".", "", ""))
-        assert os.access(".", os.W_OK) == access
+        monkeypatch.setattr("os.access", lambda *args: True)
+        assert get_path(".", "ar", "plaintext") is not None
+        assert get_path("./README.md", "ar", "plaintext") is not None
 
-        access = bool(get_path("/etc/hosts", "", ""))
-        assert os.access("/etc/hosts", os.W_OK) == access
 
-    # The following tests, however, assume that the CWD is writeable.
-
-    # Asserts that the CWD is okay for file downloading,
-    # and that a file is not.
-    def test_directory_for_file_downloading(self):
+    # Asserts that only directories are accepted for file downloading.
+    def test_directory_for_file_downloading(self, monkeypatch):
+        monkeypatch.setattr("os.access", lambda *args: True)
         assert get_path(".", "fd", "") == "."
         assert get_path("./a_file.txt", "fd", "") is None
 
-    # Asserts that files are accepted for archiving, and that a
-    # filename is appended if a directory is given.
-    def test_file_for_thread_archiving(self):
-        assert get_path("./file.txt", "ar", "") == "./file.txt"
+    # Asserts that filenames are implicity given for
+    # archives if only a directory is given.
+    def test_file_for_thread_archiving(self, monkeypatch):
+        monkeypatch.setattr("os.access", lambda *args: True)
+        assert get_path("./file.txt", "ar", "plaintext") == "./file.txt"
         assert get_path(".", "ar", "sqlite") == "./archive.db"
-        assert get_path(".", "ar", "") == "./archive.txt"
-
-
-class TestGenerateUri:
-    # Asserts that the board initial and "threads.json" are in the URI.
-    @hypothesis.given(st.text())
-    def test_create_url_with_board(self, board):
-        uri = generate_uri(board, None, "4chan")
-        assert board in uri
-        assert "threads.json" in uri
-
-    # Asserts that the board and thread are in the URI,
-    # and that "threads.json" is not.
-    @hypothesis.given(st.text(), st.integers(min_value=0))
-    def test_create_url_with_thread(self, board, thread):
-        uri = generate_uri(board, str(thread), "4chan")
-        assert "/".join((board, "thread", str(thread))) in uri
-        assert "threads.json" not in uri
-
-    # Asserts that a proper imageboard must be given.
-    def test_fail_on_unknown_imageboard(self):
-        assert generate_uri("g", "", "krautchan") is None
+        assert get_path(".", "ar", "plaintext") == "./archive.txt"
 
 
 class TestStripTarget:
@@ -68,6 +44,7 @@ class TestStripTarget:
         expected_board = urllib.parse.quote(target.strip("/"), safe="/ ",
                                             errors="ignore")
 
+        # None is going to be returned if it's all whitespace.
         if not re.search(r"[^\s\/]", expected_board):
             expected_board = None
 
@@ -76,7 +53,7 @@ class TestStripTarget:
         assert strip_target("%s/" % target) == (expected_board, None)
         assert strip_target("/%s/" % target) == (expected_board, None)
 
-    # Asserts that a board and thread can be stripped.
+    # Asserts that a board and thread are properly stripped.
     @hypothesis.given(st.characters(blacklist_characters="/"),
                       st.integers(min_value=0))
     def test_strip_board_with_thread(self, target_board, target_thread):
@@ -85,13 +62,54 @@ class TestStripTarget:
                                             safe="/ ", errors="ignore")
 
         # If the given target lacks a valid board initial but a thread
-        # is given, the subroutine will interpret the thread as a board.
+        # is given, the thread will be interpreted as a board.
         if not re.search(r"[^\s\/]", expected_board):
             expected_board = str(target_thread)
             expected_thread = None
 
         target = "/".join((target_board, str(target_thread)))
         assert strip_target(target) == (expected_board, expected_thread)
+
+
+class TestGenerateUri:
+    # Asserts that the board initial and the
+    # threads endpoint are in the URI.
+    @hypothesis.given(st.text())
+    def test_create_url_with_board(self, board):
+        uri = generate_uri(board, None, "4chan")
+        assert board in uri
+        assert "threads.json" in uri
+
+        uri = generate_uri(board, None, "uboachan")
+        assert board in uri
+        assert "threads.json" in uri
+
+        uri = generate_uri(board, None, "endchan")
+        assert board in uri
+        assert "catalog.json" in uri
+
+    # Asserts that the board and thread are in the
+    # URI, and that the threads endpoint is not.
+    @hypothesis.given(st.text(), st.integers(min_value=0))
+    def test_create_url_with_thread(self, board, thread):
+        uri = generate_uri(board, str(thread), "4chan")
+        assert "/".join((board, "thread", str(thread))) in uri
+        assert "threads.json" not in uri
+
+        uri = generate_uri(board, str(thread), "8chan")
+        assert "/".join((board, "res", str(thread))) in uri
+        assert "threads.json" not in uri
+
+        uri = generate_uri(board, str(thread), "endchan")
+        assert "/".join((board, "res", str(thread))) in uri
+        assert "catalog.json" not in uri
+
+    # Asserts that None is returned when the
+    # imageboard is not a known alias.
+    def test_fail_on_unknown_imageboard(self):
+        assert generate_uri("b", "", "7chan") is None
+        assert generate_uri("c", "", "krautchan") is None
+        assert generate_uri("silicon", "", "sushigirl") is None
 
 
 class TestGetTargets:
@@ -108,7 +126,6 @@ class TestGetTargets:
             expected_uri = "http://a.4cdn.org/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
             expected_failed = []
-
         parsed, failed = get_targets([board], "4chan", False)
         assert parsed == expected_result
         assert failed == expected_failed
@@ -117,7 +134,6 @@ class TestGetTargets:
         if expected_result:
             expected_uri = "http://8ch.net/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
-
         parsed, failed = get_targets([board], "8chan", False)
         assert parsed == expected_result
         assert failed == expected_failed
@@ -126,7 +142,6 @@ class TestGetTargets:
         if expected_result:
             expected_uri = "http://lainchan.org/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
-
         parsed, failed = get_targets([board], "lainchan", False)
         assert parsed == expected_result
         assert failed == expected_failed
@@ -138,7 +153,6 @@ class TestGetTargets:
         # Hardcoded tests for 4chan.
         target = "/".join((board, str(thread)))
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
-
         if not re.search(r"[^\s\/]", escaped):
             expected_uri = "http://a.4cdn.org/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
@@ -146,7 +160,6 @@ class TestGetTargets:
             expected_uri = "http://a.4cdn.org/%s/thread/%s.json" % (escaped,
                                                                     thread)
             expected_result = {expected_uri: [escaped, True, ""]}
-
         parsed, failed = get_targets([target], "4chan", False)
         assert parsed == expected_result
         assert not failed
@@ -154,14 +167,12 @@ class TestGetTargets:
         # Hardcoded tests for 8chan.
         target = "/".join((board, str(thread)))
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
-
         if not re.search(r"[^\s\/]", escaped):
             expected_uri = "http://8ch.net/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
         else:
             expected_uri = "http://8ch.net/%s/res/%s.json" % (escaped, thread)
             expected_result = {expected_uri: [escaped, True, ""]}
-
         parsed, failed = get_targets([target], "8chan", False)
         assert parsed == expected_result
         assert not failed
@@ -169,7 +180,6 @@ class TestGetTargets:
         # Hardcoded tests for Lainchan.
         target = "/".join((board, str(thread)))
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
-
         if not re.search(r"[^\s\/]", escaped):
             expected_uri = "http://lainchan.org/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
@@ -177,7 +187,6 @@ class TestGetTargets:
             expected_uri = "http://lainchan.org/%s/res/%s.json" % (escaped,
                                                                    thread)
             expected_result = {expected_uri: [escaped, True, ""]}
-
         parsed, failed = get_targets([target], "lainchan", False)
         assert parsed == expected_result
         assert not failed
@@ -198,6 +207,20 @@ class TestGetTargets:
         parsed, failed = get_targets(["/"], "lainchan", False)
         assert not parsed
         assert "/" in failed
+
+    # Asserts failure when a valid URI cannot be created.
+    def test_fail_invalid_uri(self):
+        parsed, failed = get_targets(["b"], "7chan", False)
+        assert not parsed
+        assert "b" in failed
+
+        parsed, failed = get_targets(["c"], "krautchan", False)
+        assert not parsed
+        assert "c" in failed
+
+        parsed, failed = get_targets(["silicon"], "sushigirl", False)
+        assert not parsed
+        assert "silicon" in failed
 
 
 class TestConvertToRegexp:
@@ -257,15 +280,12 @@ class TestSplitPattern:
     )
     def test_use_exact_match(self, prefix, exact, postfix):
         pattern = " \" ".join(map(" ".join, (prefix, exact, postfix)))
-
         expected = prefix if prefix else []
         if exact and "".join(exact).strip():
             expected.append(" ".join(exact).strip())
         if postfix:
             expected += postfix
-
         expected = filter(lambda x: not re.search(r"^\s*$", x), expected)
-
         assert sorted(list(split_pattern(pattern))) == sorted(expected)
 
 

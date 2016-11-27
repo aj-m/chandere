@@ -1,5 +1,6 @@
 Short Term Proposals
 ====================
+* Replace all tests dependent upon network connections or system-wide configuration with monkeypatched equivalents.
 * Write tests for archive_plaintext and core.py.
 * Better abstract the check to see if main_loop is done.
 * Implement post field shorthands in get_filters.

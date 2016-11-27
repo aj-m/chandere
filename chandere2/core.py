@@ -20,6 +20,7 @@ from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 MAX_CONNECTIONS = 8
 
 
+# Arguments are primarily for testing purposes.
 def main(parser=PARSER, output=None):
     """Command-line entry-point to Chandere2."""
     args = parser.parse_args()

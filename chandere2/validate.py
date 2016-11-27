@@ -11,9 +11,9 @@ REGEX_SPECIAL = ".?+()[]/\\"
 
 def get_path(path: str, mode: str, output_format: str) -> str:
     """Validates the given output path, ensuring that the user has
-    sufficient permissions to write there and appending a stock filename
-    if necessary. The finalized path is returned, or None if the path
-    was considered to be invalid.
+    sufficient permissions to write there and appending a default
+    filename if necessary. The finalized path is returned, or None
+    if the path was considered to be invalid.
     """
     parent_directory = os.path.dirname(os.path.abspath(path))
     if os.path.isdir(path):
@@ -32,9 +32,10 @@ def get_path(path: str, mode: str, output_format: str) -> str:
 
 
 def strip_target(target: str) -> tuple:
-    """Strips the given target string for a board initial and, if found,
-    a thread number. A tuple containing the two will be returned, with
-    None as the thread if a thread number was not in the target string.
+    """Uses regular expressions to strip the given target string for a
+    board initial and, if found, a thread number. None will be returned
+    as the thread if there wasn't one in the target string, and None
+    will be returned as the board if the string was invalid.
     """
     # The target should be quoted and stripped prior to further
     # handing, as Python has difficulty with some Unicode.
@@ -161,9 +162,6 @@ def split_pattern(pattern: str) -> iter:
         if not re.search(r"^\"\s*\"$", regexp.group().strip()):
             yield pattern[regexp.start():regexp.end()][1:-1].strip()
         pattern = pattern[:regexp.start()] + pattern[regexp.end():]
-
-    if pattern.strip():
-        yield pattern.strip()
 
 
 def get_filters(filters: list, imageboard: str) -> tuple:

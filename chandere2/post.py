@@ -55,7 +55,6 @@ def get_image_uri(filename: str, board: str, imageboard: str) -> str:
     """Produces a valid URI for the given filename, board and
     imageboard."""
     context = CONTEXTS.get(imageboard)
-
     uri = [context.get("image_uri")]
     if context.get("board_in_image_uri"):
         uri.append(board)
@@ -72,7 +71,6 @@ def get_images_default(post: dict, imageboard: str):
     """
     context = CONTEXTS.get(imageboard)
     filename, tim, ext, extra_files = context.get("image_fields")
-
     if post.get(tim) is not None:
         if post.get(filename) is False:
             original_filename = str(post.get(tim)) + post.get(ext)
@@ -96,7 +94,6 @@ def get_images_path_based(post: dict, imageboard: str):
     """
     context = CONTEXTS.get(imageboard)
     filename, path, _, files_field = context.get("image_fields")
-
     for image in post.get(files_field, []):
         yield (image.get(filename), image.get(path)[1:])
 
@@ -110,7 +107,6 @@ def get_images_id_based(post: dict, imageboard: str):
     context = CONTEXTS.get(imageboard)
     no = context.get("post_fields")[0]
     filename, attachment_id, _, files_field = context.get("image_fields")
-
     for index, image in enumerate(post.get(files_field, [])):
         pivot = image.get(context.get("image_pivot"))
         original_filename = pivot.get(filename)
@@ -130,7 +126,6 @@ def iterate_posts(content: dict, imageboard: str):
     """
     context = CONTEXTS.get(imageboard)
     reply_field = context.get("reply_field")
-
     if reply_field:
         if reply_field in content:
             replies = content[reply_field]
