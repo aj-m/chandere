@@ -409,7 +409,7 @@ def test_unescape_text():
 def test_format_post(no, name, trip, sub, com, filename, ext, date):
     # Hardcoded tests for vichan-styled imageboards.
     post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
-            "com": com, "filename": filename, "ext": ext}
+            "com": com, "filename": filename, "ext": ext, "tim": date}
     formatted = ascii_format_post(post, "4chan")
 
     assert formatted == ascii_format_post(post, "8chan")

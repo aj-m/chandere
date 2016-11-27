@@ -44,7 +44,7 @@ class TestGenerateUri:
     # Asserts that the board initial and "threads.json" are in the URI.
     @hypothesis.given(st.text())
     def test_create_url_with_board(self, board):
-        uri = generate_uri(board, None)
+        uri = generate_uri(board, None, "4chan")
         assert board in uri
         assert "threads.json" in uri
 
@@ -52,13 +52,13 @@ class TestGenerateUri:
     # and that "threads.json" is not.
     @hypothesis.given(st.text(), st.integers(min_value=0))
     def test_create_url_with_thread(self, board, thread):
-        uri = generate_uri(board, str(thread))
+        uri = generate_uri(board, str(thread), "4chan")
         assert "/".join((board, "thread", str(thread))) in uri
         assert "threads.json" not in uri
 
     # Asserts that a proper imageboard must be given.
     def test_fail_on_unknown_imageboard(self):
-        assert generate_uri("g", "", imageboard="krautchan") is None
+        assert generate_uri("g", "", "krautchan") is None
 
 
 class TestStripTarget:
@@ -105,29 +105,29 @@ class TestGetTargets:
             expected_result = {}
             expected_failed = [board]
         else:
-            expected_uri = "a.4cdn.org/%s/threads.json" % escaped
+            expected_uri = "http://a.4cdn.org/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
             expected_failed = []
 
-        parsed, failed = get_targets([board], "4chan")
+        parsed, failed = get_targets([board], "4chan", False)
         assert parsed == expected_result
         assert failed == expected_failed
 
         # Hardcoded test for 8chan.
         if expected_result:
-            expected_uri = "8ch.net/%s/threads.json" % escaped
+            expected_uri = "http://8ch.net/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
 
-        parsed, failed = get_targets([board], "8chan")
+        parsed, failed = get_targets([board], "8chan", False)
         assert parsed == expected_result
         assert failed == expected_failed
 
         # Hardcoded test for Lainchan.
         if expected_result:
-            expected_uri = "lainchan.org/%s/threads.json" % escaped
+            expected_uri = "http://lainchan.org/%s/threads.json" % escaped
             expected_result = {expected_uri: [escaped, False, ""]}
 
-        parsed, failed = get_targets([board], "lainchan")
+        parsed, failed = get_targets([board], "lainchan", False)
         assert parsed == expected_result
         assert failed == expected_failed
 
@@ -140,13 +140,14 @@ class TestGetTargets:
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
 
         if not re.search(r"[^\s\/]", escaped):
-            expected_uri = "a.4cdn.org/%d/threads.json" % thread
+            expected_uri = "http://a.4cdn.org/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
         else:
-            expected_uri = "a.4cdn.org/%s/thread/%s.json" % (escaped, thread)
+            expected_uri = "http://a.4cdn.org/%s/thread/%s.json" % (escaped,
+                                                                    thread)
             expected_result = {expected_uri: [escaped, True, ""]}
 
-        parsed, failed = get_targets([target], "4chan")
+        parsed, failed = get_targets([target], "4chan", False)
         assert parsed == expected_result
         assert not failed
 
@@ -155,13 +156,13 @@ class TestGetTargets:
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
 
         if not re.search(r"[^\s\/]", escaped):
-            expected_uri = "8ch.net/%d/threads.json" % thread
+            expected_uri = "http://8ch.net/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
         else:
-            expected_uri = "8ch.net/%s/res/%s.json" % (escaped, thread)
+            expected_uri = "http://8ch.net/%s/res/%s.json" % (escaped, thread)
             expected_result = {expected_uri: [escaped, True, ""]}
 
-        parsed, failed = get_targets([target], "8chan")
+        parsed, failed = get_targets([target], "8chan", False)
         assert parsed == expected_result
         assert not failed
 
@@ -170,30 +171,31 @@ class TestGetTargets:
         escaped = urllib.parse.quote(board, safe="/ ", errors="ignore").strip()
 
         if not re.search(r"[^\s\/]", escaped):
-            expected_uri = "lainchan.org/%d/threads.json" % thread
+            expected_uri = "http://lainchan.org/%d/threads.json" % thread
             expected_result = {expected_uri: [str(thread), False, ""]}
         else:
-            expected_uri = "lainchan.org/%s/res/%s.json" % (escaped, thread)
+            expected_uri = "http://lainchan.org/%s/res/%s.json" % (escaped,
+                                                                   thread)
             expected_result = {expected_uri: [escaped, True, ""]}
 
-        parsed, failed = get_targets([target], "lainchan")
+        parsed, failed = get_targets([target], "lainchan", False)
         assert parsed == expected_result
         assert not failed
 
     # Asserts failure when a board is omitted.
     def test_fail_invalid_target(self):
         # Hardcoded test for 4chan.
-        parsed, failed = get_targets(["/"], "4chan")
+        parsed, failed = get_targets(["/"], "4chan", False)
         assert not parsed
         assert "/" in failed
 
         # Hardcoded test for 8chan.
-        parsed, failed = get_targets(["/"], "8chan")
+        parsed, failed = get_targets(["/"], "8chan", False)
         assert not parsed
         assert "/" in failed
 
         # Hardcoded test for Lainchan.
-        parsed, failed = get_targets(["/"], "lainchan")
+        parsed, failed = get_targets(["/"], "lainchan", False)
         assert not parsed
         assert "/" in failed
 

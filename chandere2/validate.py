@@ -16,7 +16,6 @@ def get_path(path: str, mode: str, output_format: str) -> str:
     was considered to be invalid.
     """
     parent_directory = os.path.dirname(os.path.abspath(path))
-
     if os.path.isdir(path):
         if not os.access(path, os.W_OK):
             path = None
@@ -26,11 +25,9 @@ def get_path(path: str, mode: str, output_format: str) -> str:
             else:
                 filename = "archive.txt"
             path = os.path.join(path, filename)
-
     else:
         if not os.access(parent_directory, os.W_OK) or mode == "fd":
             path = None
-
     return path
 
 
@@ -59,12 +56,11 @@ def strip_target(target: str) -> tuple:
     return (board, thread)
 
 
-def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
+def generate_uri(board: str, thread: str, imageboard: str) -> str:
     """Forms a valid URI for the given board, thread and imageboard.
     None is returned if the URI could not be created.
     """
     context = CONTEXTS.get(imageboard)
-
     if context is None:
         uri = None
     else:
@@ -77,28 +73,29 @@ def generate_uri(board: str, thread: str, imageboard="4chan") -> str:
         else:
             uri = "/".join((imageboard_uri, board, delimiter,
                             thread + ".json"))
-
     return uri
 
 
-def get_targets(targets: list, imageboard: str) -> tuple:
-    """Strips the list of target strings, creating a dictionary in which
-    each key represents the URI for a target and points to a list
-    containing the board, whether or not the URI refers to a thread,
-    and a container for the HTTP last-modified header. A list of failed
-    targets is also returned.
+def get_targets(targets: list, imageboard: str, use_ssl: bool) -> tuple:
+    """Strips a list of target strings, creating a data structure in
+    which each key represents the target's URI and the value is a
+    mutable list containing the board, whether or not the URI refers to
+    a thread, and a container for the HTTP last-modified header. A list
+    of failedtargets is also returned.
     """
     target_uris = {}
     failed = []
-
     for target in targets:
         board, thread = strip_target(target)
         if board is not None:
             uri = generate_uri(board, thread, imageboard)
-            target_uris[uri] = [board, bool(thread), ""]
+            if uri:
+                uri = "https://" + uri if use_ssl else "http://" + uri
+                target_uris[uri] = [board, bool(thread), ""]
+            else:
+                failed.append(target)
         else:
             failed.append(target)
-
     return (target_uris, failed)
 
 

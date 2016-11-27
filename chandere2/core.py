@@ -20,11 +20,12 @@ from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 MAX_CONNECTIONS = 8
 
 
-def main(args=PARSER.parse_args(), output=None):
+def main(parser=PARSER, output=None):
     """Command-line entry-point to Chandere2."""
+    args = parser.parse_args()
     output = output or Console(debug=args.debug)
 
-    target_uris, failed = get_targets(args.targets, args.imageboard)
+    target_uris, failed = get_targets(args.targets, args.imageboard, args.ssl)
     for pattern in failed:
         output.write_error("Invalid target \"%s\"" % pattern)
     if not target_uris:
@@ -45,9 +46,8 @@ def main(args=PARSER.parse_args(), output=None):
     try:
         loop = asyncio.get_event_loop()
         loop.add_signal_handler(signal.SIGINT, clean_up)
-
         if args.mode is None:
-            target_operation = try_connection(target_uris, args.ssl, output)
+            target_operation = try_connection(target_uris, output)
             loop.run_until_complete(target_operation)
         else:
             target_operation = main_loop(target_uris, path, filters,
@@ -58,18 +58,38 @@ def main(args=PARSER.parse_args(), output=None):
 
 
 def clean_up():
-    """General subroutine to safely clean up after a signal interrupt
-    has been received, cancelling all tasks in the event loop.
-    """
+    """Safe clean up function to cancel pending tasks."""
     for task in asyncio.Task.all_tasks():
         task.cancel()
 
 
+def get_operations(target_uris: dict, cap_connections: bool) -> list:
+    """Creates a list of coroutines for connecting to each of the
+    targets, and will wrap their execution into a semaphore if
+    cap_connections is True.
+    """
+    operations = []
+    if cap_connections:
+        connection_cap = asyncio.Semaphore(MAX_CONNECTIONS)
+        for uri in target_uris:
+            last_load = target_uris[uri][2]
+            target_operation = fetch_uri(uri, last_load)
+            wrapped = wrap_semaphore(target_operation, connection_cap)
+            operations.append(wrapped)
+    else:
+        for uri in target_uris:
+            last_load = target_uris[uri][2]
+            target_operation = fetch_uri(uri, last_load)
+            operations.append(target_operation)
+    return operations
+
+
 async def handle_file(filename: str, image: str, path: str, ssl: bool, output):
-    """Coroutine to handle a file downloading."""
+    """Coroutine to handle file downloading."""
+    image = "https://" + image if ssl else "http://" + image
     output.write_debug("File %s found at %s." % (filename, image))
     output.write("Downloading \"%s\"..." % filename)
-    if await download_file(image, path, filename, ssl):
+    if await download_file(image, path, filename):
         output.write("Downloaded %s." % filename)
     else:
         output.write_error("Could not download %s." % filename)
@@ -87,21 +107,8 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
     output.write_debug("Entering the main loop.")
     while True:
         iteration += 1
-        operations = []
+        operations = get_operations(target_uris, args.cap_connections)
         output.write_debug("Starting iteration %d." % iteration)
-
-        if args.nocap:
-            for uri in target_uris:
-                last_load = target_uris[uri][2]
-                target_operation = fetch_uri(uri, last_load, args.ssl)
-                operations.append(target_operation)
-        else:
-            connection_cap = asyncio.Semaphore(MAX_CONNECTIONS)
-            for uri in target_uris:
-                last_load = target_uris[uri][2]
-                target_operation = fetch_uri(uri, last_load, args.ssl)
-                wrapped = wrap_semaphore(target_operation, connection_cap)
-                operations.append(wrapped)
 
         for future in asyncio.as_completed(operations):
             try:
@@ -110,6 +117,14 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
                 output.write_error("Exception caught. The imageboard may "
                                    "require an SSL connection - run Chandere2 "
                                    "with the '--ssl' flag.")
+                del target_uris[uri]
+                continue
+            except OSError:
+                output.write_error("Exception caught. Are you sure you have a "
+                                   "working internet connection right now? If "
+                                   "so, check to see if the Imageboard is "
+                                   "online.")
+                del target_uris[uri]
                 continue
             if error == 404:
                 output.write_error("%s does not exist." % uri)
@@ -134,10 +149,12 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
                     for image, name in find_files(posts, board, imageboard):
                         await handle_file(name, image, path, args.ssl, output)
                 elif args.mode == "ar":
+                    output.write("Archiving %s..." % uri)
                     if args.output_format == "sqlite":
-                        archive_sqlite(posts, path, imageboard)
+                        archive_sqlite(posts, path, board, imageboard)
                     else:
                         archive_plaintext(posts, path, imageboard)
+                    output.write("Archiving successful.")
 
         if args.continuous:
             pass

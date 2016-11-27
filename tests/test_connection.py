@@ -18,8 +18,8 @@ class TestTryConnection:
 
         loop = asyncio.get_event_loop()
 
-        target_uris = ["a.4cdn.org/g/threads.json"]
-        target_operation = try_connection(target_uris, False, fake_output)
+        target_uris = ["http://a.4cdn.org/g/threads.json"]
+        target_operation = try_connection(target_uris, fake_output)
 
         loop.run_until_complete(target_operation)
         assert ">" in fake_stdout.last_received
@@ -32,8 +32,8 @@ class TestTryConnection:
 
         loop = asyncio.get_event_loop()
 
-        target_uris = ["a.4cdn.org/z/threads.json"]
-        target_operation = try_connection(target_uris, False, fake_output)
+        target_uris = ["http://a.4cdn.org/z/threads.json"]
+        target_operation = try_connection(target_uris, fake_output)
 
         loop.run_until_complete(target_operation)
         assert "FAILED" in fake_stderr.last_received
@@ -43,28 +43,28 @@ class TestFetchUri:
     # Asserts that a proper connection was made and returned.
     def test_successful_fetch(self):
         loop = asyncio.get_event_loop()
-        target_operation = fetch_uri("a.4cdn.org/g/threads.json", "", False)
+        target_operation = fetch_uri("http://a.4cdn.org/g/threads.json", "")
 
         async def check_return_value():
             content, error, last_load, uri = await target_operation
             assert content is not None
             assert not error
             assert last_load
-            assert uri == "a.4cdn.org/g/threads.json"
+            assert uri == "http://a.4cdn.org/g/threads.json"
 
         loop.run_until_complete(check_return_value())
 
     # Asserts that a connection wasn't made and was properly handled.
     def test_failed_fetch(self):
         loop = asyncio.get_event_loop()
-        target_operation = fetch_uri("a.4cdn.org/z/threads.json", "", False)
+        target_operation = fetch_uri("http://a.4cdn.org/z/threads.json", "")
 
         async def check_return_value():
             content, error, last_load, uri = await target_operation
             assert content is None
             assert error == 404
             assert not last_load
-            assert uri == "a.4cdn.org/z/threads.json"
+            assert uri == "http://a.4cdn.org/z/threads.json"
 
         loop.run_until_complete(check_return_value())
 
@@ -73,8 +73,8 @@ class TestDownloadFile:
     # Asserts that the file was created.
     def test_successful_download(self):
         loop = asyncio.get_event_loop()
-        target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
-        target_operation = download_file(target_uri, ".", "gnu.png", False)
+        target_uri = "http://wiki.installgentoo.com/images/a/a8/GNU.png"
+        target_operation = download_file(target_uri, ".", "gnu.png")
 
         assert loop.run_until_complete(target_operation)
         assert os.path.exists("gnu.png")
@@ -84,20 +84,19 @@ class TestDownloadFile:
     # Asserts that the file does not exist.
     def test_failed_download(self):
         loop = asyncio.get_event_loop()
-        target_uri = "wiki.installgentoo.com/images/a/a8/GNU.gif"
-        target_operation = download_file(target_uri, ".", "gnu.gif", False)
+        target_uri = "http://wiki.installgentoo.com/images/a/a8/GNU.gif"
+        target_operation = download_file(target_uri, ".", "gnu.gif")
 
         assert not loop.run_until_complete(target_operation)
-
         assert not os.path.exists("gnu.gif")
 
     # Asserts that "(Copy)" is successfully prepended to the filename.
     def test_prepend_copy(self):
         loop = asyncio.get_event_loop()
-        target_uri = "wiki.installgentoo.com/images/a/a8/GNU.png"
+        target_uri = "http://wiki.installgentoo.com/images/a/a8/GNU.png"
 
         for _ in range(3):
-            target_operation = download_file(target_uri, ".", "gnu.png", False)
+            target_operation = download_file(target_uri, ".", "gnu.png")
             assert loop.run_until_complete(target_operation)
 
         assert os.path.exists("gnu.png")

@@ -89,19 +89,6 @@ class TestCreateArchive:
         assert os.path.exists("archive.txt")
         os.remove("archive.txt")
 
-    # Asserts that a database is properly created.
-    def test_create_database(self):
-        create_archive("ar", "sqlite", "archive.db")
-        assert os.path.exists("archive.db")
-
-        connection = sqlite3.connect("archive.db")
-        cursor = connection.cursor()
-
-        cursor.execute("SELECT name FROM sqlite_master")
-        assert "posts" in cursor.fetchone()
-
-        os.remove("archive.db")
-
     # Asserts that nothing is done in file download mode.
     def test_fail_on_fd_mode(self):
         create_archive("fd", "plaintext", "archive.txt")

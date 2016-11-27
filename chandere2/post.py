@@ -73,12 +73,18 @@ def get_images_default(post: dict, imageboard: str):
     context = CONTEXTS.get(imageboard)
     filename, tim, ext, extra_files = context.get("image_fields")
 
-    if post.get(tim):
-        original_filename = post.get(filename) + post.get(ext)
+    if post.get(tim) is not None:
+        if post.get(filename) is False:
+            original_filename = str(post.get(tim)) + post.get(ext)
+        else:
+            original_filename = post.get(filename) + post.get(ext)
         server_filename = str(post.get(tim)) + post.get(ext)
         yield (original_filename, server_filename)
         for image in post.get(extra_files, []):
-            original_filename = image.get(filename) + image.get(ext)
+            if image.get(filename) is False:
+                original_filename = str(image.get(tim)) + image.get(ext)
+            else:
+                original_filename = image.get(filename) + image.get(ext)
             server_filename = str(image.get(tim)) + image.get(ext)
             yield (original_filename, server_filename)
 
@@ -197,6 +203,7 @@ def ascii_format_post(post: dict, imageboard: str):
     context = CONTEXTS.get(imageboard)
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
     alternative_no, _ = context.get("thread_fields")
+    _, tim, _, _ = context.get("image_fields")
     string = ["=" * 80, "Post ID: %s" % post.get(no, post.get(alternative_no))]
 
     if isinstance(post.get(date), int):
@@ -212,8 +219,11 @@ def ascii_format_post(post: dict, imageboard: str):
     else:
         string.append("[No Subject]")
 
-    if post.get(filename) and post.get(ext):
-        string.append("File: " + post.get(filename) + post.get(ext))
+    if post.get(filename) is not None and post.get(ext) is not None:
+        if post.get(filename) is False:
+            string.append("File: " + post.get(tim) + post.get(ext))
+        else:
+            string.append("File: " + post.get(filename) + post.get(ext))
         ## TODO: Check should be more reasonable. <jakob@memeware.net>
         # if ext is None:
         #     files_field = context.get("image_fields")[3]

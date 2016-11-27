@@ -1,7 +1,7 @@
 ![Chandere2](https://raw.github.com/TsarFox/chandere2/master/Chandere2_Logo.png "Chandere2")
 ========
 ## A command-line utility programmed and maintained by [Jakob.](http://tsar-fox.com/)
-An asynchronous image/file downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
+An asynchronous image downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
 
 Chandere2 is a complete rewrite of Chandere using asynchronous concurrency. Its goals are to be fast and as universal as possible.
 
@@ -13,10 +13,10 @@ Chandere2 is free software, licensed under the [GNU General Public License.](htt
 Primary Features
 ----------------
 
-* Scraping from multiple boards and threads simutaneously
-* Archiving to several formats, including SQLite and plaintext.
-* Post filtering with syntax similar to that of 4chan's.
-* Currently supports 4chan, 8chan, 76chan, Endchan, Lainchan, and Nextchan.
+* Allows for scraping from multiple boards and threads simutaneously.
+* Archives to many formats, including plaintext and even SQLite databases.
+* A simple but powerful interface for filtering posts, with support for wildcard syntax and regular expressions.
+* Support for countless imageboards. Nearly every update brings support for another imageboard.
 
 
 Installation

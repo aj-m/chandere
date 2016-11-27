@@ -87,5 +87,17 @@ CONTEXTS = {
                  "thread_fields": NEXT_THREAD_FIELDS,
                  "reply_field": "replies",
                  "image_pivot": "pivot",
-                 "resto": "reply_to"}
+                 "resto": "reply_to"},
+    "uboachan": {"uri": "uboachan.net",
+                 "threads_endpoint": "threads.json",
+                 "image_uri": "uboachan.net",
+                 "image_dir": "src",
+                 "board_in_image_uri": True,
+                 "delimiter": "res",
+                 "image_fields": VICHAN_IMAGE_FIELDS,
+                 "post_fields": VICHAN_POST_FIELDS,
+                 "thread_fields": VICHAN_THREAD_FIELDS,
+                 "reply_field": None,
+                 "image_pivot": None,
+                 "resto": "resto"},
 }
