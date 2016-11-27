@@ -1,4 +1,3 @@
-import os
 import re
 import urllib.parse
 
@@ -254,7 +253,6 @@ class TestConvertToRegexp:
         assert convert_to_regexp(pattern) == expected
 
 
-## TODO: Write a test for yielding final part. <jakob@memeware.net>
 class TestSplitPattern:
     # Asserts that whitespace is properly handled.
     @hypothesis.given(
