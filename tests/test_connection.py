@@ -7,7 +7,7 @@ from chandere2.output import Console
 from dummy_output import FakeOutput
 
 
-# Fake response object that can be awaited.
+# Awaitable fake response object. Used for monkeypatching aiohttp.
 class DummyResponse:
     def __init__(self, status: int, headers: dict, content: bytes):
         self.status = status
@@ -44,7 +44,7 @@ class TestTryConnection:
         target_operation = try_connection(target_uris, fake_output)
 
         loop.run_until_complete(target_operation)
-        assert ">" in fake_stdout.last_received
+        assert "> X-Served: Nginx" in fake_stdout.last_received
 
     # Asserts that "FAILED" is written to stderr.
     def test_failed_connection(self, monkeypatch):

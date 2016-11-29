@@ -1,4 +1,4 @@
-"""Definitions for command-line arguments."""
+"""Command-line argument definitions."""
 
 import argparse
 import textwrap

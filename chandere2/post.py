@@ -10,9 +10,11 @@ from chandere2.validate import generate_uri
 
 SUBSTITUTIONS = ((r'<p class="body-line empty "><\/p>', "\n\n"),
                  (r'<\/p>(?=<p class="body-line ltr ">)', "\n"),
-                 (r"<\/?br\\?\/?>", "\n"), (r"&#039;", "'"), (r"&gt;?", ">"),
-                 (r"&quot;?", r"\\"), (r"&amp;?", "&"), (r"<.+?>", ""),
-                 (r"\\/", "/"))
+                 (r'<\/p>(?=<p class="body-line ltr quote ">)', "\n"),
+                 (r"<\/?br\\?\/?>", "\n"), (r"&#0?39;?", "'"), (r"&gt;?", ">"),
+                 (r"&#0?42;?", "*"), (r"&#0?45;?", "-"), (r"&lt;?", "<"),
+                 (r"&#0?95;", "_"), (r"&quot;?", r"\\"), (r"&amp;?", "&"),
+                 (r"<.+?>", ""), (r"\\/", "/"))
 
 
 def get_threads_from_endpoint(content: list, board: str, imageboard: str):
@@ -105,7 +107,6 @@ def get_images_id_based(post: dict, imageboard: str):
     Next.
     """
     context = CONTEXTS.get(imageboard)
-    no = context.get("post_fields")[0]
     filename, attachment_id, _, files_field = context.get("image_fields")
     for index, image in enumerate(post.get(files_field, [])):
         pivot = image.get(context.get("image_pivot"))
@@ -196,46 +197,43 @@ def unescape(text: str) -> str:
 def ascii_format_post(post: dict, imageboard: str):
     """Returns an ASCII-formtted version of the given post."""
     context = CONTEXTS.get(imageboard)
-    no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
-    alternative_no, _ = context.get("thread_fields")
-    _, tim, _, _ = context.get("image_fields")
-    string = ["=" * 80, "Post ID: %s" % post.get(no, post.get(alternative_no))]
+    post_id, date, name, tripcode, subject, _, _, _ = context.get("post_fields")
+    _, _, _, _, _, comment, filename, extension = context.get("post_fields")
+    alt_id, _ = context.get("thread_fields")
+    _, timestamp, _, files_field = context.get("image_fields")
+    formatted = ["=" * 80, "Post ID: %s" % post.get(post_id, post.get(alt_id))]
 
+    # Some imageboard API's will supply date in epoch time,
+    # while others will supply it as a string.
     if isinstance(post.get(date), int):
-        date = time.ctime(post.get(date))
+        date_value = time.ctime(post.get(date))
     else:
-        date = post.get(date)
-    tripcode = "!" + post.get(trip) if post.get(trip) else ""
+        date_value = post.get(date)
+
+    tripcode_value = "!" + post.get(tripcode) if post.get(tripcode) else ""
     author = unescape(post.get(name)) or "Anonymous"
-    string.append("%s%s on %s" % (author, tripcode, date))
+    formatted.append("%s%s on %s" % (author, tripcode_value, date_value))
 
-    if post.get(sub):
-        string.append("\"%s\"" % unescape(post.get(sub)))
+    if post.get(subject):
+        formatted.append("\"%s\"" % unescape(post.get(subject)))
     else:
-        string.append("[No Subject]")
+        formatted.append("[No Subject]")
 
-    if post.get(filename) is not None and post.get(ext) is not None:
+    if post.get(filename) is not None and post.get(extension) is not None:
         if post.get(filename) is False:
-            string.append("File: " + post.get(tim) + post.get(ext))
+            filename_value = str(post.get(timestamp)) + post.get(extension)
         else:
-            string.append("File: " + post.get(filename) + post.get(ext))
-        ## TODO: Check should be more reasonable. <jakob@memeware.net>
-        # if ext is None:
-        #     files_field = context.get("image_fields")[3]
-        #     string.append("File: " + post.get(files_field).get(filename))
-        # else:
-        #     string.append("File: " + post.get(filename) + post.get(ext))
+            filename_value = post.get(filename) + post.get(extension)
+    elif post.get(files_field):
+        filename_value = post.get(files_field).get(filename)
     else:
-        string.append("File: [No File]")
+        filename_value = "[No File]"
+    formatted.append("File: " + filename_value)
+    formatted.append("=" * 80)
 
-    string.append("=" * 80)
-
-    body = unescape(post.get(com, "")).strip()
+    body = unescape(post.get(comment, "")).strip()
     wrap = lambda line: textwrap.wrap(line, width=80, replace_whitespace=False)
-
     for line in body.splitlines():
-        string.append("\n".join(wrap(line)))
-
-    string.append("=" * 80)
-
-    return "\n".join(string)
+        formatted.append("\n".join(wrap(line)))
+    formatted.append("=" * 80)
+    return "\n".join(formatted)

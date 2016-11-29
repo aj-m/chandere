@@ -1,5 +1,8 @@
 """General information specific to certain imageboards."""
 
+## TODO: Reimplement image, post and thread fields as
+## hashmaps so that unpacking isn't required.
+
 LYNXCHAN_IMAGE_FIELDS = ("originalName", "path", None, "files")
 LYNXCHAN_POST_FIELDS = ("postId", "creation", "name", "id", "subject",
                         "markdown", "originalName", None)
