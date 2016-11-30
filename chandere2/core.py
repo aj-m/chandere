@@ -2,9 +2,11 @@
 command-line input and controls the asynchronous event loop.
 """
 
+from concurrent.futures import _base
 import asyncio
 import signal
 import sys
+import time
 
 import aiohttp.errors
 
@@ -18,6 +20,7 @@ from chandere2.validate import (get_filters, get_path, get_targets)
 from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 
 MAX_CONNECTIONS = 8
+WAIT_TIME = 30
 
 
 def main(parser=PARSER, output=None):
@@ -53,6 +56,9 @@ def main(parser=PARSER, output=None):
             target_operation = main_loop(target_uris, path, filters,
                                          args, output)
             loop.run_until_complete(target_operation)
+    # The traceback for a cancelled future doesn't interest us.
+    except _base.CancelledError:
+        pass
     finally:
         loop.close()
 
@@ -159,7 +165,7 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
             target_uris[uri][2] = last_load
 
         if args.continuous:
-            pass
+            await asyncio.sleep(WAIT_TIME)
         elif all(thread for _, thread, _ in target_uris.values()):
             break
         elif iteration > 1:
