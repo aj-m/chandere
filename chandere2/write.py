@@ -2,23 +2,39 @@
 
 import os.path
 import re
+import string
 import sqlite3
 
 from chandere2.context import CONTEXTS
 from chandere2.post import (ascii_format_post, unescape)
 
 
-def archive_sqlite(posts: list, path: str, imageboard: str):
+def archive_sqlite(posts: list, path: str, board: str, imageboard: str):
     """Connects to the Sqlite database located at the given path, and
     creates an entry for every post given.
     """
     connection = sqlite3.connect(path)
     cursor = connection.cursor()
 
+    board = "".join((char for char in board if char in string.ascii_letters))
+    cursor.execute("CREATE TABLE IF NOT EXISTS %s (no INTEGER " % board
+                   + "PRIMARY KEY NOT NULL, reply_to INTEGER, time INTEGER "
+                   "NOT NULL, name TEXT NOT NULL, trip TEXT, sub TEXT, com "
+                   "TEXT, filename TEXT);")
+
+
     context = CONTEXTS.get(imageboard)
     no, date, name, trip, sub, com, filename, ext = context.get("post_fields")
+    alternative_no, _ = context.get("thread_fields")
+    resto = context.get("resto")
+    parent = None
 
     for post in posts:
+        cursor.execute("SELECT * FROM %s WHERE no = ?;" % board,
+                       (post.get(no),))
+        if cursor.fetchall():
+            continue
+
         if post.get(filename):
             if ext:
                 filename = post.get(filename) + post.get(ext)
@@ -27,15 +43,18 @@ def archive_sqlite(posts: list, path: str, imageboard: str):
         else:
             filename = None
 
-        cursor.execute("SELECT * FROM posts WHERE no = ?;", (post.get(no),))
-        if cursor.fetchall():
-            continue
+        cursor.execute("INSERT INTO %s (no, reply_to, time, name, " % board
+                       + "trip, sub, com, filename) VALUES (?, ?, ?, ?, ?, "
+                       "?, ?, ?);", (post.get(no), parent, post.get(date),
+                                     unescape(post.get(name, "")), post.get(trip),
+                                     unescape(post.get(sub, "")),
+                                     unescape(post.get(com, "")),
+                                     filename))
 
-        cursor.execute("INSERT INTO posts (no, time, name, trip, sub, com, "
-                       "filename) VALUES (?, ?, ?, ?, ?, ?, ?);",
-                       (post.get(no), post.get(date), unescape(post.get(name)),
-                        post.get(trip), unescape(post.get(sub)),
-                        unescape(post.get(com)), filename))
+        if resto and post.get(resto) == 0:
+            parent = post.get(no)
+        elif not resto and post.get(alternative_no):
+            parent = post.get(no)
 
     connection.commit()
 
@@ -56,7 +75,7 @@ def archive_plaintext(posts: list, path: str, imageboard: str):
             formatted = ascii_format_post(post, imageboard)
             insert_to_file(output_file, formatted, parent, post.get(no))
 
-            if resto and post.get(resto) == 0 or post.get(resto) == None:
+            if resto and post.get(resto) == 0:
                 parent = post.get(no)
             elif not resto and post.get(alternative_no):
                 parent = post.get(alternative_no)
@@ -92,21 +111,6 @@ def create_archive(mode: str, output_format: str, path: str):
     that the mode and output_format would require the file to exist.
     """
     if mode == "ar" and not os.path.exists(path):
-        if output_format == "sqlite":
-            connection = sqlite3.connect(path)
-            cursor = connection.cursor()
-
-            cursor.execute("CREATE TABLE IF NOT EXISTS posts "
-                           "(no INTEGER PRIMARY KEY NOT NULL, "
-                           "time INTEGER NOT NULL, "
-                           "name TEXT NOT NULL, "
-                           "trip TEXT, "
-                           "sub TEXT, "
-                           "com TEXT, "
-                           "filename TEXT);")
-
-            connection.commit()
-
-        else:
+        if output_format == "plaintext":
             with open(path, "w"):
                 pass

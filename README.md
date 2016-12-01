@@ -1,22 +1,22 @@
 ![Chandere2](https://raw.github.com/TsarFox/chandere2/master/Chandere2_Logo.png "Chandere2")
 ========
 ## A command-line utility programmed and maintained by [Jakob.](http://tsar-fox.com/)
-An asynchronous image/file downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
+An asynchronous image downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.
 
 Chandere2 is a complete rewrite of Chandere using asynchronous concurrency. Its goals are to be fast and as universal as possible.
 
 Chandere2 is free software, licensed under the [GNU General Public License.](http://gnu.org/licenses/gpl.html)
 
-[![Build Status](https://travis-ci.org/TsarFox/chandere2.svg?branch=master)](https://travis-ci.org/TsarFox/chandere2)  [![PyPI Downloads](https://img.shields.io/pypi/dm/Chandere2.svg)](https://pypi.python.org/pypi/Chandere2/)  [![AUR Version](https://img.shields.io/aur/version/chandere2.svg)](https://aur.archlinux.org/packages/chandere2/)  [![License](https://img.shields.io/github/license/tsarfox/chandere2.svg)](https://www.gnu.org/licenses/gpl.html)
+[![Build Status](https://travis-ci.org/TsarFox/chandere2.svg?branch=master)](https://travis-ci.org/TsarFox/chandere2)  [![PyPI Version](https://img.shields.io/pypi/v/Chandere2.svg)](https://pypi.python.org/pypi/Chandere2/)  [![AUR Version](https://img.shields.io/aur/version/chandere2.svg)](https://aur.archlinux.org/packages/chandere2/)  [![License](https://img.shields.io/github/license/tsarfox/chandere2.svg)](https://www.gnu.org/licenses/gpl.html)
 
 
 Primary Features
 ----------------
 
-* Scraping from multiple boards and threads simutaneously
-* Archiving to several formats, including SQLite and plaintext.
-* Post filtering with syntax similar to that of 4chan's.
-* Currently supports 4chan, 8chan, 76chan, Endchan, Lainchan, and Nextchan.
+* Several boards and threads can be scraped from simutaneously.
+* Archives to many formats, including plaintext and SQL.
+* A simple but powerful interface for filtering posts, with support for wildcard syntax and regular expressions.
+* Countless imageboards are supported out of the box. New support is added nearly every update.
 
 
 Installation
@@ -28,10 +28,9 @@ Installation
 
 If you are running a distribution for which Chandere2 is not packaged, or are not running Linux, the most reliable way to install Chandere2 is through Pip.
 
-    $ # It is recommended that you use the latest version of pip and setuptools when installing Chandere.
-    $ pip install --upgrade pip setuptools
-
-    $ pip install --upgrade chandere2
+    $ # It is recommended that you use the latest version of pip and setuptools when installing Chandere2.
+    # pip install --upgrade pip setuptools
+    # pip install --upgrade chandere2
 
 Alternatively, setup.py in the repository's root directory can be used. This is not recommended.
 

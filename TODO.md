@@ -1,11 +1,9 @@
 Short Term Proposals
 ====================
 * Write tests for archive_plaintext and core.py.
-* Better abstract the check to see if main_loop is done.
-* Improve core.clean_up, so that it outputs less about cancelled tasks.
 * Implement post field shorthands in get_filters.
-* Clean up tests and ensure that they properly cover code.
-* Add a reply_to field for Sqlite archives.
+* Implement CSV and JSON output.
+* Add support for HTTP/SOCKS proxying and Hidden Services.
 
 
 Long Term Proposals

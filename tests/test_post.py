@@ -62,7 +62,7 @@ def test_get_threads(board):
 
 
 class TestGetImagesDefault:
-    # Asserts that images are properly parsed
+    # Asserts that images are properly parsed.
     @hypothesis.given(st.text(), st.text(), st.integers())
     def test_get_images(self, filename, extension, tim):
         content = {"filename": filename, "ext": extension, "tim": str(tim)}
@@ -94,6 +94,18 @@ class TestGetImagesDefault:
 
         # Hardcoded test for Lainchan.
         assert list(get_images_default(content, "lainchan")) == parsed
+
+    # Asserts that the timestamp is used if filename is False.
+    @hypothesis.given(st.text(), st.integers())
+    def test_substitute_filename(self, extension, tim):
+        content = {"filename": False, "ext": extension, "tim": str(tim),
+                   "extra_files": [{"filename": False, "ext": extension,
+                                    "tim": str(tim + 1)}]}
+        parsed = [(str(tim) + extension, str(tim) + extension),
+                  (str(tim + 1) + extension, str(tim + 1) + extension)]
+
+        # Hardcoded test for Uboachan.
+        assert list(get_images_default(content, "uboachan")) == parsed
 
 
 class TestGetImagesPathBased:
@@ -172,31 +184,49 @@ class TestGetImagesIdBased:
         assert list(get_images_id_based(content, "nextchan")) == parsed
 
 
-# Asserts that both forms of thread output are iterable.
-def test_iterate_posts():
-    # Hardcoded example for Vichan-styled imageboards.
-    content = {"posts": [{}]}
+class TestIteratePosts:
+    # Asserts that both forms of thread output are iterable.
+    def test_iterate_posts(self):
+        # Hardcoded example for Vichan-styled imageboards.
+        content = {"posts": [{}]}
 
-    # Hardcoded test for 4chan.
-    assert list(iterate_posts(content, "4chan")) == [{}]
+        # Hardcoded test for 4chan.
+        assert list(iterate_posts(content, "4chan")) == [{}]
 
-    # Hardcoded test for 8chan.
-    assert list(iterate_posts(content, "8chan")) == [{}]
+        # Hardcoded test for 8chan.
+        assert list(iterate_posts(content, "8chan")) == [{}]
 
-    # Hardcoded test for Lainchan.
-    assert list(iterate_posts(content, "lainchan")) == [{}]
+        # Hardcoded test for Lainchan.
+        assert list(iterate_posts(content, "lainchan")) == [{}]
 
-    # Hardcoded example for Lynxchan-styled imageboards.
-    content = {"posts": [{}]}
+        # Hardcoded example for Lynxchan-styled imageboards.
+        content = {"posts": [{}]}
 
-    # Hardcoded test for Endchan.
-    assert list(iterate_posts(content, "endchan")) == [content, {}]
+        # Hardcoded test for Endchan.
+        assert list(iterate_posts(content, "endchan")) == [content, {}]
 
-    # Hardcoded example for Infinity-Next styled imageboards.
-    content = {"replies": [{}]}
+        # Hardcoded example for Infinity-Next styled imageboards.
+        content = {"replies": [{}]}
 
-    # Hardcoded test for Nextchan.
-    assert list(iterate_posts(content, "nextchan")) == [content, {}]
+        # Hardcoded test for Nextchan.
+        assert list(iterate_posts(content, "nextchan")) == [content, {}]
+
+    ## This capability is actually not required for any of the
+    ## imageboards supported by Chandere2, but is kept in the case
+    ## that a future imageboard API uses it.
+    # Asserts that a post lacking a replies field is still iterable.
+    def test_iterate_no_replies(self):
+        # Hardcoded example for Lynxchan-styled imageboards.
+        content = {"postId": 1}
+
+        # Hardcoded test for Endchan.
+        assert list(iterate_posts(content, "endchan")) == [content]
+
+        # Hardcoded example for Infinity-Next styled imageboards.
+        content = {"board_id": 0}
+
+        # Hardcoded test for Nextchan.
+        assert list(iterate_posts(content, "nextchan")) == [content]
 
 
 # Asserts that a proper image URI is returned.
@@ -397,31 +427,83 @@ class TestCachePosts:
         assert cache == [first_id, second_id]
 
 
-## TODO: Write a test to cover all patterns. <jakob@memeware.net>
+# Asserts that an example of each unescaping pattern is carried out.
 def test_unescape_text():
-    text = "<p class=\"body-line empty \"></p>&amp;"
-    assert unescape(text) == "\n\n&"
+    assert unescape("<p class=\"body-line empty \"></p>") == "\n\n"
+    assert unescape("</p><p class=\"body-line ltr \">") == "\n"
+    assert unescape("</p><p class=\"body-line ltr quote \">") == "\n"
+    assert unescape("</br\/>") == "\n"
+    assert unescape("&#039;") == "'"
+    assert unescape("&gt;") == ">"
+    assert unescape("&#42;") == "*"
+    assert unescape("&#45;") == "-"
+    assert unescape("&lt;") == "<"
+    assert unescape("&#95;") == "_"
+    assert unescape("&quot;") == "\\"
+    assert unescape("&amp;") == "&"
+    assert unescape("<marquee>") == ""
+    assert unescape("\\/") == "/"
 
 
-@hypothesis.given(st.integers(), st.text(), st.text(), st.text(), st.text(),
-                  st.text(), st.text(),
-                  st.integers(min_value=0, max_value=4294967295))
-def test_format_post(no, name, trip, sub, com, filename, ext, date):
-    # Hardcoded tests for vichan-styled imageboards.
-    post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
-            "com": com, "filename": filename, "ext": ext}
-    formatted = ascii_format_post(post, "4chan")
+class TestAsciiFormatPost:
+    # Asserts that the proper information is in the formatted string.
+    @hypothesis.given(st.integers(), st.text(), st.text(), st.text(),
+                      st.text(), st.text(), st.text(),
+                      st.integers(min_value=0, max_value=4294967295))
+    def test_format_post(self, no, name, trip, sub, com, filename, ext, date):
+        # Hardcoded test for Vichan-styled imageboards.
+        post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
+                "com": com, "filename": filename, "ext": ext, "tim": date}
+        formatted = ascii_format_post(post, "4chan")
 
-    assert formatted == ascii_format_post(post, "8chan")
-    assert formatted == ascii_format_post(post, "lainchan")
-    assert "Post ID: %s" % no in formatted
-    assert time.ctime(date) in formatted
+        assert formatted == ascii_format_post(post, "8chan")
+        assert formatted == ascii_format_post(post, "lainchan")
+        assert "Post ID: %s" % no in formatted
+        assert time.ctime(date) in formatted
 
-    if name:
-        assert unescape(name) in formatted or "Anonymous" in formatted
-    if trip:
-        assert "!%s" % trip in formatted
-    if sub:
-        assert unescape("\"%s\"" % sub) in formatted
-    if filename and ext:
-        assert filename + ext in formatted
+        if name:
+            assert unescape(name) in formatted or "Anonymous" in formatted
+        if trip:
+            assert "!%s" % trip in formatted
+        if sub:
+            assert unescape("\"%s\"" % sub) in formatted
+        if filename and ext:
+            assert filename + ext in formatted
+
+        # Hardcoded test for Lynxchan-styled imageboards.
+        post = {"postId": no, "creation": time.ctime(date), "name": name,
+                "id": trip, "subject": sub, "markdown": com,
+                "files": {"originalName": filename + ext}}
+        formatted = ascii_format_post(post, "endchan")
+
+        assert "Post ID: %s" % no in formatted
+        assert time.ctime(date) in formatted
+
+        if name:
+            assert unescape(name) in formatted or "Anonymous" in formatted
+        if trip:
+            assert "!%s" % trip in formatted
+        if sub:
+            assert unescape("\"%s\"" % sub) in formatted
+        if filename and ext:
+            assert filename + ext in formatted
+
+    # Asserts that the the timestamp is used instead.
+    @hypothesis.given(st.integers(), st.text(), st.text(), st.text(),
+                      st.text(), st.text(),
+                      st.integers(min_value=0, max_value=4294967295))
+    def test_no_filename(self, no, name, trip, sub, com, ext, date):
+        post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
+                "com": com, "filename": False, "ext": ext, "tim": date}
+        formatted = ascii_format_post(post, "uboachan")
+        assert str(date) + ext in formatted
+
+    # Asserts that an omitted file is handled.
+    @hypothesis.given(st.integers(), st.text(), st.text(), st.text(),
+                      st.text()
+                      , st.integers(min_value=0, max_value=4294967295))
+    def test_omitted_file(self, no, name, trip, sub, com, date):
+        post = {"no": no, "time": date, "name": name, "trip": trip, "sub": sub,
+                "com": com, "tim": date}
+        formatted = ascii_format_post(post, "4chan")
+        assert "File: [No File]" in formatted
