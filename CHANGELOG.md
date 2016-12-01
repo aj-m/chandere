@@ -6,9 +6,9 @@ This document records all notable changes to Chandere2.
 **Version 2.4.0**
 -----------------
 * Added support for Uboachan.
-* Implemented exception handling for when the network is down or the imageboard is unreachable.
-* Archiving to SQLite now creates a separate table for every board.
-* Improved the network efficiency of continuous mode.
+* Implemented handling for when the network is down or the imageboard is unreachable.
+* Database archives now have a separate table for each board.
+* Fixed several issues with continuous mode.
 * Tracebacks are no longer shown when a user issues a signal interrupt.
 
 

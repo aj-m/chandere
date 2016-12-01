@@ -1,11 +1,8 @@
 Short Term Proposals
 ====================
-* Replace all tests dependent upon network connections or system-wide configuration with monkeypatched equivalents.
 * Write tests for archive_plaintext and core.py.
-* Better abstract the check to see if main_loop is done.
 * Implement post field shorthands in get_filters.
-* Clean up tests and ensure that they properly cover code.
-* Add a reply_to field for Sqlite archives.
+* Implement CSV and JSON output.
 * Add support for HTTP/SOCKS proxying and Hidden Services.
 
 
