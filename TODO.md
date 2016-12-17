@@ -1,8 +1,7 @@
 Short Term Proposals
 ====================
-* Write tests for archive_plaintext and core.py.
+* Avoid pointless feature creep.
 * Implement post field shorthands in get_filters.
-* Implement CSV and JSON output.
 * Add support for HTTP/SOCKS proxying and Hidden Services.
 
 
