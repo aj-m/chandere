@@ -20,18 +20,18 @@ def test_get_threads_from_endpoint(thread, board):
     content = [{"page": 1, "threads": [{"no": thread}]}]
 
     # Hardcoded test for 4chan.
-    threads = list(get_threads_from_endpoint(content, board, "4chan"))
-    expected = [generate_uri(board, str(thread), "4chan")]
+    threads = list(get_threads_from_endpoint(content, board, "4chan", False))
+    expected = [generate_uri(board, str(thread), "4chan", False)]
     assert threads == expected
 
     # Hardcoded test for 8chan.
-    threads = list(get_threads_from_endpoint(content, board, "8chan"))
-    expected = [generate_uri(board, str(thread), "8chan")]
+    threads = list(get_threads_from_endpoint(content, board, "8chan", False))
+    expected = [generate_uri(board, str(thread), "8chan", False)]
     assert threads == expected
 
     # Hardcoded test for Lainchan.
-    threads = list(get_threads_from_endpoint(content, board, "lainchan"))
-    expected = [generate_uri(board, str(thread), "lainchan")]
+    threads = list(get_threads_from_endpoint(content, board, "lainchan", False))
+    expected = [generate_uri(board, str(thread), "lainchan", False)]
     assert threads == expected
 
 
@@ -41,15 +41,15 @@ def test_get_threads_from_catalog(thread, board):
     content = [{"threadId": thread}]
 
     # Hardcoded test for Endchan.
-    threads = list(get_threads_from_catalog(content, board, "endchan"))
-    expected = [generate_uri(board, str(thread), "endchan")]
+    threads = list(get_threads_from_catalog(content, board, "endchan", False))
+    expected = [generate_uri(board, str(thread), "endchan", False)]
     assert threads == expected
 
     # Hardcoded test for Nextchan.
     content = [{"board_id": thread}]
 
-    threads = list(get_threads_from_catalog(content, board, "nextchan"))
-    expected = [generate_uri(board, str(thread), "nextchan")]
+    threads = list(get_threads_from_catalog(content, board, "nextchan", False))
+    expected = [generate_uri(board, str(thread), "nextchan", False)]
     assert threads == expected
 
 
@@ -57,7 +57,7 @@ def test_get_threads_from_catalog(thread, board):
 @hypothesis.given(st.text())
 def test_get_threads(board):
     for imageboard in CONTEXTS:
-        generator = get_threads([], board, imageboard)
+        generator = get_threads([], board, imageboard, False)
         assert isinstance(generator, types.GeneratorType)
 
 

@@ -57,7 +57,7 @@ def strip_target(target: str) -> tuple:
     return (board, thread)
 
 
-def generate_uri(board: str, thread: str, imageboard: str) -> str:
+def generate_uri(board: str, thread: str, imageboard: str, ssl: bool) -> str:
     """Forms a valid URI for the given board, thread and imageboard.
     None is returned if the URI could not be created.
     """
@@ -65,15 +65,16 @@ def generate_uri(board: str, thread: str, imageboard: str) -> str:
     if context is None:
         uri = None
     else:
+        prefix = "https://" if ssl else "http://"
         imageboard_uri = context.get("uri")
         delimiter = context.get("delimiter")
         threads_endpoint = context.get("threads_endpoint")
 
         if thread is None:
-            uri = "/".join((imageboard_uri, board, threads_endpoint))
+            uri = prefix + "/".join((imageboard_uri, board, threads_endpoint))
         else:
-            uri = "/".join((imageboard_uri, board, delimiter,
-                            thread + ".json"))
+            uri = prefix + "/".join((imageboard_uri, board, delimiter,
+                                     thread + ".json"))
     return uri
 
 
@@ -89,9 +90,8 @@ def get_targets(targets: list, imageboard: str, use_ssl: bool) -> tuple:
     for target in targets:
         board, thread = strip_target(target)
         if board is not None:
-            uri = generate_uri(board, thread, imageboard)
+            uri = generate_uri(board, thread, imageboard, use_ssl)
             if uri:
-                uri = "https://" + uri if use_ssl else "http://" + uri
                 target_uris[uri] = [board, bool(thread), ""]
             else:
                 failed.append(target)

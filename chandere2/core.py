@@ -10,11 +10,11 @@ import time
 
 from chandere2.cli import PARSER
 from chandere2.connection import try_connection
+from chandere2.loop import main_loop
 from chandere2.output import Console
 from chandere2.validate import (get_filters, get_path, get_targets)
 from chandere2.write import create_archive
 
-MAX_CONNECTIONS = 8
 WAIT_TIME = 30
 
 

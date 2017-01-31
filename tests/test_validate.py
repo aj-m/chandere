@@ -75,15 +75,15 @@ class TestGenerateUri:
     # threads endpoint are in the URI.
     @hypothesis.given(st.text())
     def test_create_url_with_board(self, board):
-        uri = generate_uri(board, None, "4chan")
+        uri = generate_uri(board, None, "4chan", False)
         assert board in uri
         assert "threads.json" in uri
 
-        uri = generate_uri(board, None, "uboachan")
+        uri = generate_uri(board, None, "uboachan", False)
         assert board in uri
         assert "threads.json" in uri
 
-        uri = generate_uri(board, None, "endchan")
+        uri = generate_uri(board, None, "endchan", False)
         assert board in uri
         assert "catalog.json" in uri
 
@@ -91,24 +91,24 @@ class TestGenerateUri:
     # URI, and that the threads endpoint is not.
     @hypothesis.given(st.text(), st.integers(min_value=0))
     def test_create_url_with_thread(self, board, thread):
-        uri = generate_uri(board, str(thread), "4chan")
+        uri = generate_uri(board, str(thread), "4chan", False)
         assert "/".join((board, "thread", str(thread))) in uri
         assert "threads.json" not in uri
 
-        uri = generate_uri(board, str(thread), "8chan")
+        uri = generate_uri(board, str(thread), "8chan", False)
         assert "/".join((board, "res", str(thread))) in uri
         assert "threads.json" not in uri
 
-        uri = generate_uri(board, str(thread), "endchan")
+        uri = generate_uri(board, str(thread), "endchan", False)
         assert "/".join((board, "res", str(thread))) in uri
         assert "catalog.json" not in uri
 
     # Asserts that None is returned when the
     # imageboard is not a known alias.
     def test_fail_on_unknown_imageboard(self):
-        assert generate_uri("b", "", "7chan") is None
-        assert generate_uri("c", "", "krautchan") is None
-        assert generate_uri("silicon", "", "sushigirl") is None
+        assert generate_uri("b", "", "7chan", False) is None
+        assert generate_uri("c", "", "krautchan", False) is None
+        assert generate_uri("silicon", "", "sushigirl", False) is None
 
 
 class TestGetTargets:

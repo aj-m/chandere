@@ -11,6 +11,8 @@ from chandere2.post import (cache_posts, find_files, filter_posts, get_threads,
                             iterate_posts)
 from chandere2.write import (archive_plaintext, archive_sqlite, create_archive)
 
+MAX_CONNECTIONS = 8
+
 
 def get_operations(target_uris: dict, cap_connections: bool) -> list:
     """Creates a list of coroutines for connecting to each of the
@@ -88,7 +90,7 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
             output.write_debug("Connection made to %s..." % uri)
 
             if not thread:
-                for uri in get_threads(content, board, imageboard):
+                for uri in get_threads(content, board, imageboard, args.ssl):
                     target_uris[uri] = [board, True, ""]
             else:
                 posts = iterate_posts(content, imageboard)

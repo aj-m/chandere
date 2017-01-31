@@ -17,7 +17,8 @@ SUBSTITUTIONS = ((r'<p class="body-line empty "><\/p>', "\n\n"),
                  (r"<.+?>", ""), (r"\\/", "/"))
 
 
-def get_threads_from_endpoint(content: list, board: str, imageboard: str):
+def get_threads_from_endpoint(content: list, board: str,
+                              imageboard: str, ssl: bool):
     """Thread parsing function for imageboards that supply a normal
     threads.json endpoint.
     """
@@ -25,10 +26,11 @@ def get_threads_from_endpoint(content: list, board: str, imageboard: str):
     no, threads = context.get("thread_fields")
     for thread in sum([page.get(threads) for page in content], []):
         thread_no = str(thread.get(no))
-        yield generate_uri(board, thread_no, imageboard)
+        yield generate_uri(board, thread_no, imageboard, ssl)
 
 
-def get_threads_from_catalog(content: list, board: str, imageboard: str):
+def get_threads_from_catalog(content: list, board: str,
+                             imageboard: str, ssl: bool):
     """Alternative thread parsing function for imageboards that do not
     offer a threads.json endpoint, but instead offer a catalog.json.
     """
@@ -36,10 +38,11 @@ def get_threads_from_catalog(content: list, board: str, imageboard: str):
     no, _ = context.get("thread_fields")
     for thread in content:
         thread_no = str(thread.get(no))
-        yield generate_uri(board, thread_no, imageboard)
+        yield generate_uri(board, thread_no, imageboard, ssl)
 
 
-def get_threads(content: list, board: str, imageboard: str):
+def get_threads(content: list, board: str,
+                imageboard: str, ssl: bool):
     """Generator that iterates through the content of a threads
     endpoint, creating and yielding a URI for every thread seen.
     Chooses the method that is appropriate for the given imageboard.
@@ -47,9 +50,9 @@ def get_threads(content: list, board: str, imageboard: str):
     context = CONTEXTS.get(imageboard)
     endpoint = context.get("threads_endpoint")
     if endpoint == "threads.json":
-        generator = get_threads_from_endpoint(content, board, imageboard)
+        generator = get_threads_from_endpoint(content, board, imageboard, ssl)
     else:
-        generator = get_threads_from_catalog(content, board, imageboard)
+        generator = get_threads_from_catalog(content, board, imageboard, ssl)
     return generator
 
 
