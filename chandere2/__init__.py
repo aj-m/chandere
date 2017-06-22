@@ -5,4 +5,4 @@ Futaba-styled imageboards, such as 4chan and 8chan.
 
 __author__ = "Jakob Tsar-Fox <jakob@memeware.net>"
 __licence__ = "GPLv3"
-__version__ = "2.4.0"
+__version__ = "2.4.1"

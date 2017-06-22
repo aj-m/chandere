@@ -3,6 +3,11 @@ Change Log
 This document records all notable changes to Chandere2.
 
 
+**Version 2.4.1**
+-----------------
+* No major changes, just a new stable release with some fixes for new aiohttp.
+
+
 **Version 2.4.0**
 -----------------
 * Added support for Uboachan.
