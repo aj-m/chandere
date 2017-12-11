@@ -3,8 +3,7 @@ for iterating over targets and handling scraping.
 """
 
 import asyncio
-
-import aiohttp.errors
+import aiohttp
 
 from chandere2.connection import (download_file, fetch_uri, wrap_semaphore)
 from chandere2.post import (cache_posts, find_files, filter_posts, get_threads,
@@ -64,7 +63,7 @@ async def main_loop(target_uris: dict, path: str, filters: list, args, output):
         for future in asyncio.as_completed(operations):
             try:
                 content, error, last_load, uri = await future
-            except aiohttp.errors.ClientOSError:
+            except aiohttp.ClientOSError:
                 output.write_error("Exception caught. The imageboard may "
                                    "require an SSL connection - run Chandere2 "
                                    "with the '--ssl' flag.")
