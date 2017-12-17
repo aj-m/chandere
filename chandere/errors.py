@@ -1,6 +1,6 @@
-class ChandereCriticalException(Exception):
+class ChandereException(Exception):
     def __init__(self, *args, **kwargs):
-        super.__init__(self, *args, **kwargs)
+        Exception.__init__(self, *args, **kwargs)
 
 
 def handle_anomalous_http_status(code: int, url=None):
@@ -8,4 +8,4 @@ def handle_anomalous_http_status(code: int, url=None):
         error = "Encountered HTTP/1.1 {}".format(code)
         if url is not None:
             error += " while fetching '{}'.".format(url)
-        raise ChandereCriticalException(error)
+        raise ChandereException(error)

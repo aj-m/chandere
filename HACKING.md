@@ -30,16 +30,18 @@ directory of the source tree, but here are a few methods that you may want to
 define:
 
 ```
-## Imageboards
-# Returns all threads for a board's initials (e.g. "vr")
-async def collect_threads(board: str) -> list
+
+# Returns all threads for a target. In the case of image or textboards,
+# the target is expected to be the initials of a board. In the case of a
+# Booru, however, this would be some tags.
+async def collect_threads(target: str) -> list
 
 # Returns all posts in a thread.
-async def collect_posts(board: str, thread: int) -> list
+async def collect_posts(target: str, thread: int) -> list
 
-# Returns a list of (original_filename, url) for every image in a board or, if
-# specified, thread.
-async def collect_images(board: str, thread=None)
+# Returns a list of (original_filename, url) for every image in a target
+# or, if specified, a thread.
+async def collect_images(target: str, thread=None)
 ```
 
 [1]: http://jakob.space/
