@@ -1,5 +1,5 @@
 __pycache__/
-Chandere2.egg-info/
+Chandere.egg-info/
 build/
 dist/
 .tox/
@@ -10,8 +10,6 @@ dist/
 *.egg-info
 *.pyc
 *.egg
-TAGS
 
-discarded/
-*.gz
-PKGBUILD
+src_old/
+tests_old/

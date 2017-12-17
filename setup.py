@@ -4,7 +4,7 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-from chandere2 import __version__
+from chandere import __version__
 
 
 def long_description():
@@ -13,23 +13,23 @@ def long_description():
 
 
 setup(
-    name="Chandere2",
+    name="Chandere",
     license="GPLv3+",
     version=__version__,
     author="Jakob Kreuze",
     author_email="jakob@memeware.net",
     maintainer="Jakob Kreuze",
     maintainer_email="jakob@memeware.net",
-    url="https://github.com/TsarFox/chandere2",
+    url="https://github.com/TsarFox/chandere",
     description="An asynchronous image/file downloader and thread archiver for Futaba-styled imageboards, such as 4chan and 8chan.",
     long_description=long_description(),
-    download_url="https://github.com/TsarFox/chandere2",
-    packages=["chandere2"],
+    download_url="https://github.com/TsarFox/chandere",
+    packages=["chandere"],
     include_package_data=True,
     install_requires=["aiohttp"],
     extras_require={},
     tests_require=["pytest", "tox", "hypothesis"],
-    entry_points={"console_scripts": ["chandere2 = chandere2.core:main"]},
+    entry_points={"console_scripts": ["chandere = chandere.main:main"]},
     keywords="downloader archiver imageboard",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
