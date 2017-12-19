@@ -12,4 +12,4 @@ $(DOCPATH)/chandere2.1.gz: $(DOCPATH)/chandere2.1
 
 # Tests
 test:
-	python -m pytest -v tests/test_*.py
+	python -m pytest -v $(find tests | grep -e .py^)

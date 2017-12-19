@@ -1,47 +1,30 @@
+# Copyright (C) 2017 Jakob Kreuze, All Rights Reserved.
+#
+# This file is part of Chandere.
+#
+# Chandere is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version.
+#
+# Chandere is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+# Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with Chandere. If not, see <http://www.gnu.org/licenses/>.
+
 """Entry point for the command-line interface to Chandere."""
 
 import asyncio
 import concurrent.futures
-import importlib
-import os
-import re
-from urllib.parse import quote
 
 import aiohttp
 
 from chandere.cli import PARSER
-from chandere.errors import ChandereException, handle_anomalous_http_status
-
-
-def get_scraper(website: str) -> object:
-    module_name = "chandere.websites.{}".format(website)
-    return importlib.import_module(module_name).Scraper
-
-
-def strip_target(target: str) -> tuple:
-    """Uses regular expressions to strip the given target string for a
-    board initial and, if found, a thread number. None will be returned
-    as the thread if there wasn't one in the target string, and None
-    will be returned as the board if the string was invalid.
-    """
-    # The target should be quoted and stripped prior to further
-    # handing, as Python has difficulty with some Unicode.
-    target = quote(target, safe="/ ", errors="ignore").strip()
-
-    # The regular expression pattern matches a sequence of
-    # characters not containing whitespace or a forward slash,
-    # optionally preceded and succeeded by a forward slash.
-    match = re.search(r"(?<=\/)?[^\s\/]+(?=[\/ ])?", target)
-    board = match.group() if match else None
-
-    # The regular expression pattern matches a sequence of digits
-    # preceded by something that might look like a board and a
-    # forward slash or space character, optionally succeeded by a
-    # forward slash.
-    match = re.search(r"(?<=[^\s\/][\/ ])\d+(?=\/)?", target)
-    thread = match.group() if match else None
-
-    return (board, thread)
+from chandere.errors import ChandereError, handle_anomalous_http_status
+from chandere.util import load_custom_scraper, load_scraper
 
 
 async def download_files(files: iter):
@@ -63,7 +46,6 @@ async def download_all_files(out: str, targets: list, scraper: object):
         post, uri = pair
         template_data = post
         template_data["index"] = i + 1
-        scraper.tidy_post_fields(template_data)
         pairs.append((out.format(**template_data), uri))
     print("Queued {} downloads...".format(len(pairs)))
     await download_files(pairs)
@@ -71,18 +53,21 @@ async def download_all_files(out: str, targets: list, scraper: object):
 
 def main():
     args = PARSER.parse_args()
-    scraper = get_scraper(args.website)
-    targets = [strip_target(target) for target in args.targets]
-    ## IDEA: strip_target in each website class.
+    loop = asyncio.get_event_loop()
 
     try:
-        loop = asyncio.get_event_loop()
+        if args.custom_scraper is not None:
+            scraper = load_custom_scraper(args.custom_scraper)
+        else:
+            scraper = load_scraper(args.website)
+        targets = [scraper.parse_target(target) for target in args.targets]
+
         loop.run_until_complete(download_all_files(args.output, targets, scraper))
     except concurrent.futures._base.CancelledError:
         pass
     except concurrent.futures._base.TimeoutError:
         pass
-    except ChandereException as e:
+    except ChandereError as e:
         ## TODO: Better output.
         print("Critical error: {}".format(e))
     finally:
