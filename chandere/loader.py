@@ -15,7 +15,9 @@
 # You should have received a copy of the GNU General Public License along
 # with Chandere. If not, see <http://www.gnu.org/licenses/>.
 
-"""Utility functions shared across the program."""
+"""Interface to Chandere's dynamic module loader, for deciding which
+website and action modules should be loaded at runtime.
+"""
 
 import importlib
 import os
@@ -38,9 +40,22 @@ def _list_submodules(package: str) -> types.GeneratorType:
         raise ChandereError("Could not locate '{}' package.".format(package))
 
 
+def list_actions() -> types.GeneratorType:
+    """Lists the names of all scraping actions."""
+    return _list_submodules("actions")
+
+
 def list_scrapers() -> types.GeneratorType:
     """Lists the names of all website scraping modules."""
     return _list_submodules("websites")
+
+
+def load_action(action: str) -> types.ModuleType:
+    """Returns the module for the given action."""
+    try:
+        return importlib.import_module("chandere.actions.{}".format(action))
+    except ModuleNotFoundError:
+        raise ChandereError("No such action, '{}'.".format(action))
 
 
 def load_scraper(website: str) -> types.ModuleType:
@@ -49,6 +64,17 @@ def load_scraper(website: str) -> types.ModuleType:
         return importlib.import_module("chandere.websites.{}".format(website))
     except ModuleNotFoundError:
         raise ChandereError("No such website, '{}'.".format(website))
+
+
+def load_custom_action(path: str) -> types.ModuleType:
+    """Loads and returns the action module at the given path."""
+    try:
+        spec = importlib.util.spec_from_file_location("", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    except FileNotFoundError:
+        raise ChandereError("No such file '{}'.".format(path))
 
 
 def load_custom_scraper(path: str) -> types.ModuleType:

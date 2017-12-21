@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License along
 # with Chandere. If not, see <http://www.gnu.org/licenses/>.
 
-"""An asynchronous file downloader and archiving tool for various
+"""An extremely modular asynchronous archiving tool for various
 imageboards, textboards, and Boorus.
 """
 
 __author__ = "Jakob L. Kreuze <jakob@memeware.net>"
 __licence__ = "GPLv3"
-__version__ = "2.5.0"
+__version__ = "2.5.0b1"

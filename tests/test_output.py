@@ -15,24 +15,19 @@
 # You should have received a copy of the GNU General Public License along
 # with Chandere. If not, see <http://www.gnu.org/licenses/>.
 
-"""Custom exceptions and functions for error detection."""
+import hypothesis
+import hypothesis.strategies as st
+
+from chandere.output import _ansi_escape, _ansi_wrap
 
 
-class ChandereError(Exception):
-    """A custom exception to signal an error specific to Chandere.
-    Typically caught at the entry point where its contents are displayed
-    without a traceback.
-    """
-    def __init__(self, *args, **kwargs):
-        Exception.__init__(self, *args, **kwargs)
+@hypothesis.given(st.text())
+def test_ansi_escape(text: str):
+    escape = _ansi_escape(text)
+    assert escape.startswith("\033[")
+    assert escape.endswith("m")
 
 
-def check_http_status(code: int, url=None):
-    """Checks an HTTP status code, throwing a ChandereError if the code
-    signifies an error status.
-    """
-    if code != 200:
-        error = "Encountered HTTP/1.1 {}".format(code)
-        if url is not None:
-            error += " while fetching '{}'.".format(url)
-        raise ChandereError(error)
+@hypothesis.given(st.text(), st.text())
+def test_ansi_wrap(escape: str, text: str):
+    assert _ansi_wrap(escape, text).endswith("\033[0m")

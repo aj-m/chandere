@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License along
 # with Chandere. If not, see <http://www.gnu.org/licenses/>.
 
-"""Main entry point to Chandere. Run when the package is invoked as
+"""Main entry point to Chandere; run when the package is invoked as
 "python -m chandere"
 """
 

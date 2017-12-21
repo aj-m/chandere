@@ -1,14 +1,14 @@
 # Opening an Issue
 
 If you are not a Github user, but would like to report a bug or request a
-feature, you may get in contact with the [Project Maintainer][1].
+feature, you can get in contact with the [Project Maintainer][1].
 
 Be sure to include specific details about the bug, such as relevant log output
 and details about what you were trying to do. Please run Chandere with the
 "verbose" flag, as this will give more detailed log output.
 
 ```
-$ chandere2 --verbose ...
+$ chandere --verbose ...
 ```
 
 

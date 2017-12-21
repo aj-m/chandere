@@ -19,56 +19,43 @@
 
 import asyncio
 import concurrent.futures
+import sys
 
-import aiohttp
-
-from chandere.cli import PARSER
-from chandere.errors import ChandereError, handle_anomalous_http_status
-from chandere.util import load_custom_scraper, load_scraper
-
-
-async def download_files(files: iter):
-    async with aiohttp.ClientSession() as session:
-        for filename, uri in files:
-            async with session.get(uri) as response:
-                handle_anomalous_http_status(response.status, uri)
-                ## TODO: Perform chunked writing.
-                with open(filename, "wb+") as out:
-                    out.write(await response.read())
-
-
-async def download_all_files(out: str, targets: list, scraper: object):
-    files = []
-    for board, thread in targets:
-        files += await scraper.collect_files(board, thread)
-    pairs = []
-    for i, pair in enumerate(files):
-        post, uri = pair
-        template_data = post
-        template_data["index"] = i + 1
-        pairs.append((out.format(**template_data), uri))
-    print("Queued {} downloads...".format(len(pairs)))
-    await download_files(pairs)
+from chandere import output
+from chandere.cli import PARSER, reorder_args
+from chandere.errors import ChandereError
+from chandere.loader import load_action, load_custom_action
+from chandere.loader import load_custom_scraper, load_scraper
 
 
 def main():
-    args = PARSER.parse_args()
+    # There are a handful of code paths that aren't called from this
+    # entry routine. See `cli.py` for routines such as --list-actions
+    args, _ = PARSER.parse_known_args(reorder_args(sys.argv))
     loop = asyncio.get_event_loop()
 
     try:
+        if args.custom_action is not None:
+            action = load_custom_action(args.custom_action)
+        else:
+            action = load_action(args.action)
+
         if args.custom_scraper is not None:
             scraper = load_custom_scraper(args.custom_scraper)
         else:
             scraper = load_scraper(args.website)
+
         targets = [scraper.parse_target(target) for target in args.targets]
 
-        loop.run_until_complete(download_all_files(args.output, targets, scraper))
-    except concurrent.futures._base.CancelledError:
-        pass
-    except concurrent.futures._base.TimeoutError:
-        pass
+        loop.run_until_complete(action.invoke(scraper, targets, args.output, sys.argv))
     except ChandereError as e:
         ## TODO: Better output.
-        print("Critical error: {}".format(e))
+        output.error(str(e))
+    # except concurrent.futures._base.CancelledError:
+    #     pass
+    # except concurrent.futures._base.TimeoutError:
+    #     pass
+    except KeyboardInterrupt:
+        pass
     finally:
         loop.close()

@@ -26,7 +26,7 @@ import re
 
 import aiohttp
 
-from chandere.errors import handle_anomalous_http_status
+from chandere.errors import check_http_status
 
 API_BASE = "https://a.4cdn.org"
 RES_BASE = "https://i.4cdn.org"
@@ -65,11 +65,11 @@ async def collect_threads(board: str) -> list:
     threads = []
     async with aiohttp.ClientSession() as session:
         async with session.get(uri) as response:
-            handle_anomalous_http_status(response.status, uri)
+            check_http_status(response.status, uri)
             for page in await response.json():
                 if "threads" not in page:
                     continue
-                threads += _threads_from_page(board, page)
+                threads += _threads_from_page(page)
             return threads
 
 
@@ -77,7 +77,7 @@ async def collect_posts(board: str, thread: int) -> list:
     uri = _thread_url(board, thread)
     async with aiohttp.ClientSession() as session:
         async with session.get(uri) as response:
-            handle_anomalous_http_status(response.status, uri)
+            check_http_status(response.status, uri)
             json = await response.json()
             return json.get("posts", [])
 
