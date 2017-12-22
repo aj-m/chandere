@@ -18,7 +18,6 @@
 """Entry point for the command-line interface to Chandere."""
 
 import asyncio
-import concurrent.futures
 import sys
 
 from chandere import output
@@ -31,7 +30,7 @@ from chandere.loader import load_custom_scraper, load_scraper
 def main():
     # There are a handful of code paths that aren't called from this
     # entry routine. See `cli.py` for routines such as --list-actions
-    args, _ = PARSER.parse_known_args(reorder_args(sys.argv))
+    args, _ = PARSER.parse_known_args(reorder_args(sys.argv[1:]))
     loop = asyncio.get_event_loop()
 
     try:
@@ -45,17 +44,18 @@ def main():
         else:
             scraper = load_scraper(args.website)
 
-        targets = [scraper.parse_target(target) for target in args.targets]
+        if not hasattr(scraper, "parse_target"):
+            raise ChandereError("Scraper module lacks a target parser.")
 
-        loop.run_until_complete(action.invoke(scraper, targets, args.output, sys.argv))
+        targets = [scraper.parse_target(target) for target in args.targets]
+        loop.run_until_complete(action.invoke(scraper, targets, sys.argv))
+
     except ChandereError as e:
-        ## TODO: Better output.
         output.error(str(e))
-    # except concurrent.futures._base.CancelledError:
-    #     pass
-    # except concurrent.futures._base.TimeoutError:
-    #     pass
+        sys.exit(1)
+
     except KeyboardInterrupt:
         pass
+
     finally:
         loop.close()

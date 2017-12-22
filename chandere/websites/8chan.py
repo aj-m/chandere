@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License along
 # with Chandere. If not, see <http://www.gnu.org/licenses/>.
 
-"""Scraper for 4chan.org"""
+"""Scraper for 8ch.net"""
 
 __author__ = "Jakob L. Kreuze <jakob@memeware.net>"
 __licence__ = "GPLv3"
@@ -28,8 +28,8 @@ import aiohttp
 
 from chandere.errors import check_http_status
 
-API_BASE = "https://a.4cdn.org"
-RES_BASE = "https://i.4cdn.org"
+API_BASE = "https://8ch.net"
+RES_BASE = "https://media.8ch.net"
 
 
 def _catalog_url(board: str) -> str:
@@ -37,11 +37,13 @@ def _catalog_url(board: str) -> str:
 
 
 def _thread_url(board: str, thread: str) -> str:
-    return API_BASE + "/{}/thread/{}.json".format(board, thread)
+    return API_BASE + "/{}/res/{}.json".format(board, thread)
 
 
 def _file_url(board: str, tim: str, ext: str) -> str:
-    return RES_BASE + "/{}/{}{}".format(board, tim, ext)
+    if len(tim) == 64:
+        return RES_BASE + "/file_store/{}{}".format(tim, ext)
+    return RES_BASE + "/{}/src/{}{}".format(board, tim, ext)
 
 
 def _threads_from_page(page: dict) -> list:
@@ -53,6 +55,11 @@ async def _collect_files_thread(board: str, thread: int):
         if "tim" in post and "filename" in post and "ext" in post:
             url = _file_url(board, post.get("tim"), post.get("ext"))
             yield (post, url)
+        for extra in post.get("extra_files", []):
+            url = _file_url(board, extra.get("tim"), extra.get("ext"))
+            new_post = post.copy()
+            new_post["filename"] = extra.get("filename")
+            yield (new_post, url)
 
 
 async def _collect_files_board(board: str):

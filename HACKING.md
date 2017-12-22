@@ -14,6 +14,11 @@ $ chandere --verbose ...
 
 # Hacking on the Source Code
 
+Thank you for your interest in improving Chandere! The following are standards
+for the upstream codebase. If you are here for the module API specifications and
+have no interest in your module being merged upstream, you can safely skip to
+those sections.
+
 Please make an attempt to follow the [PEP 8 Guidelines][2] in your
 contributions.
 
@@ -22,27 +27,53 @@ features such as type hinting and the async/await syntax can and should be used.
 
 Tests can be run from the repository's root with "make test".
 
-## Adding Support for a Website
+## Implementing a Module for Chandere
 
-Chandere is very modular, and adding support for a new website is as simple as
-writing a new "Scraper" class. Examples can be found in the `chandere/websites/`
-directory of the source tree, but here are a few methods that you may want to
-define:
+As of the current version, the API is unstable and subject to change. Please
+keep this in mind when developing modules.
+
+A module docstring is expected, which is used when the module is listed by
+commands such as --list-actions
+
+Additionally, `__author__`, `__licence__`, and `__version__` are recognized.
+
+Command-line arguments can be specified for an individual module. Simply expose
+an instance of argparse.ArgumentParser, named `PARSER` from your module. Its
+help information will be seamlessly integrated when Chandere's help page is
+displayed. **If your module does not require arguments,** you can safely omit
+the `PARSER` variable.
+
+**Please note the following:** It is the responsibility of your module to parse
+arguments. When this is done depends on the type of module (see below).
+Additionally, arguments will be passed to your module in the form of a list, and
+a good portion of them will not be defined within your `PARSER`. Rather than
+parsing arguments with `ArgumentParser.parse_args`, you should use
+`ArgumentParser.parse_known_args`. If you care for being idiomatic, I would
+suggest the following:
+
+```
+args, _ = PARSER.parse_known_args(argv)
+```
+
+### Adding Support for an Action
+
+Aside from `PARSER` as mentioned above, the following functions are expected to
+be exposed:
 
 ```
 
-# Returns all threads for a target. In the case of image or textboards,
-# the target is expected to be the initials of a board. In the case of a
-# Booru, however, this would be some tags.
-async def collect_threads(target: str) -> list
-
-# Returns all posts in a thread.
-async def collect_posts(target: str, thread: int) -> list
-
-# Returns a list of (original_filename, url) for every image in a target
-# or, if specified, a thread.
-async def collect_images(target: str, thread=None)
 ```
+
+### Adding Support for a Website
+
+Aside from `PARSER` as mentioned above, the following functions are expected to
+be exposed:
+
+```
+# Generator which collects files from the given targets.
+async def collect_files(board: str, thread=None) -> types.GeneratorType
+```
+
 
 [1]: http://jakob.space/
 [2]: https://www.python.org/dev/peps/pep-0008/

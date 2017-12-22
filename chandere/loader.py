@@ -26,6 +26,16 @@ import types
 from chandere.errors import ChandereError
 
 
+def _script_path_to_module_name(path: str) -> str:
+    """Strips any preceding path junk and the ".py" extention, if it
+    exists, forming a valid module name.
+    """
+    s = path[path.rindex("/") + 1:]
+    if s.endswith(".py"):
+        return s[:-3]
+    return s
+
+
 def _list_submodules(package: str) -> types.GeneratorType:
     """Lists all submodules contained in a package, raising a ChandereError
     if the package could not be located.
@@ -69,7 +79,8 @@ def load_scraper(website: str) -> types.ModuleType:
 def load_custom_action(path: str) -> types.ModuleType:
     """Loads and returns the action module at the given path."""
     try:
-        spec = importlib.util.spec_from_file_location("", path)
+        name = _script_path_to_module_name(path)
+        spec = importlib.util.spec_from_file_location(name, path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module
@@ -80,7 +91,8 @@ def load_custom_action(path: str) -> types.ModuleType:
 def load_custom_scraper(path: str) -> types.ModuleType:
     """Loads and returns the scraper module at the given path."""
     try:
-        spec = importlib.util.spec_from_file_location("", path)
+        name = _script_path_to_module_name(path)
+        spec = importlib.util.spec_from_file_location(name, path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module

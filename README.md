@@ -3,7 +3,10 @@
 An extremely modular asynchronous archiving tool for various imageboards,
 textboards, and Boorus.
 
-Chandere is free software, licensed under the [GNU General Public License.][2]
+Chandere 2.5.0 is currently in the alpha state of development, and is likely to
+bring many bugs. See [HACKING.md][2] for information on reporting issues.
+
+Chandere is free software, licensed under the [GNU General Public License.][3]
 
 [![Build Status](https://travis-ci.org/TsarFox/chandere.svg?branch=master)](https://travis-ci.org/TsarFox/chandere)  [![PyPI Version](https://img.shields.io/pypi/v/Chandere.svg)](https://pypi.python.org/pypi/Chandere/)  [![AUR Version](https://img.shields.io/aur/version/chandere.svg)](https://aur.archlinux.org/packages/chandere/)  [![License](https://img.shields.io/github/license/tsarfox/chandere.svg)](https://www.gnu.org/licenses/gpl.html)
 
@@ -18,7 +21,7 @@ Chandere is free software, licensed under the [GNU General Public License.][2]
 
 # Installation
 **Arch Linux** users are encouraged to install Chandere using Pacman, as it is
-packaged in the [AUR.][3]
+packaged in the [AUR.][4]
 
 ```
 $ # If the PKGBUILD is in the current working directory:
@@ -63,13 +66,15 @@ TODO
 # TODO
 
 ## Short Term Proposals
+* Fix ordering of TARGETS.
 * Add support for HTTP/SOCKS proxying and Hidden Services.
 
 ## Long Term Proposals
 * GUI
 
 [1]: http://jakob.space/
-[2]: http://gnu.org/licenses/gpl.html
-[3]: https://aur.archlinux.org/packages/chandere/
+[2]: https://github.com/TsarFox/chandere/blob/master/HACKING.md
+[3]: http://gnu.org/licenses/gpl.html
+[4]: https://aur.archlinux.org/packages/chandere/
 
 [img_1]: https://raw.githubusercontent.com/TsarFox/chandere/master/chandere_logo.png

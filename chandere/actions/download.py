@@ -25,43 +25,50 @@ import argparse
 
 import aiohttp
 
-from chandere import output
-from chandere.errors import check_http_status
+from chandere.cli import wrap
+from chandere.errors import ChandereError, check_http_status
 
-PARSER = argparse.ArgumentParser(
-    add_help=False,
-)
-
+PARSER = argparse.ArgumentParser(add_help=False)
 PARSER.add_argument(
-    "-t",
-    "--test",
-    help="Test argument."
+    "-o",
+    "--output",
+    metavar="DIR",
+    default="./{filename}.{ext}",
+    help=wrap(
+        "A template for output filenames. Defaults to './{filename}.{ext}', "
+        "which preserves the original filename and saves it to the current "
+        "working directory. See the manpage for specific details on usage."
+    )
 )
 
 
-async def download_files(files: iter):
+async def _download_file(uri: str, out_path: str):
     async with aiohttp.ClientSession() as session:
-        for filename, uri in files:
-            async with session.get(uri) as response:
-                check_http_status(response.status, uri)
-                ## TODO: Perform chunked writing.
-                with open(filename, "wb+") as out:
-                    out.write(await response.read())
+        async with session.get(uri) as response:
+            check_http_status(response.status, uri)
+            # TODO: Perform chunked writing.;
+            with open(out_path, "wb+") as out:
+                out.write(await response.read())
 
 
-async def invoke(scraper: object, targets: list, out: str, argv: list):
+def _tidy_post_fields(post: dict, seq_index: int):
+    if "ext" in post and post["ext"][0] == ".":
+        post["ext"] = post["ext"][1:]
+    post["index"] = seq_index
+
+
+async def invoke(scraper: object, targets: list, argv: list):
+    if not hasattr(scraper, "collect_files"):
+        msg = "'{}' module cannot collect files.".format(scraper.__name__)
+        raise ChandereError(msg)
+
     args, _ = PARSER.parse_known_args(argv)
-    print(args)
-    return
+    seq_index = 1
 
-    files = []
-    for board, thread in targets:
-        files += await scraper.collect_files(board, thread)
-    pairs = []
-    for i, pair in enumerate(files):
-        post, uri = pair
-        template_data = post
-        template_data["index"] = i + 1
-        pairs.append((out.format(**template_data), uri))
-    output.info("Queued {} downloads...".format(len(pairs)))
-    await download_files(pairs)
+    for target in targets:
+        async for parsed_file in scraper.collect_files(target):
+            post, uri = parsed_file
+            _tidy_post_fields(post, seq_index)
+            out_path = args.output.format(**post)
+            seq_index += 1
+            await _download_file(uri, out_path)

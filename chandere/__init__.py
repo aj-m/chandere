@@ -21,4 +21,4 @@ imageboards, textboards, and Boorus.
 
 __author__ = "Jakob L. Kreuze <jakob@memeware.net>"
 __licence__ = "GPLv3"
-__version__ = "2.5.0b1"
+__version__ = "2.5.0a1"
