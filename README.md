@@ -8,14 +8,15 @@ bring many bugs. See [HACKING.md][2] for information on reporting issues.
 
 Chandere is free software, licensed under the [GNU General Public License.][3]
 
-[![Build Status](https://travis-ci.org/TsarFox/chandere.svg?branch=master)](https://travis-ci.org/TsarFox/chandere)  [![PyPI Version](https://img.shields.io/pypi/v/Chandere.svg)](https://pypi.python.org/pypi/Chandere/)  [![AUR Version](https://img.shields.io/aur/version/chandere.svg)](https://aur.archlinux.org/packages/chandere/)  [![License](https://img.shields.io/github/license/tsarfox/chandere.svg)](https://www.gnu.org/licenses/gpl.html)
+[![Build Status](https://travis-ci.org/TsarFox/chandere.svg?branch=master)](https://travis-ci.org/TsarFox/chandere)  [![PyPI Version](https://img.shields.io/pypi/v/Chandere.svg)](https://pypi.python.org/pypi/Chandere/)  [![AUR Version](https://img.shields.io/aur/version/chandere2.svg)](https://aur.archlinux.org/packages/chandere2/)  [![License](https://img.shields.io/github/license/tsarfox/chandere.svg)](https://www.gnu.org/licenses/gpl.html)
 
 
-# Websites Supported by the Default Distribution
+# Supported Websites
 * 4chan
+* 8chan
 
 
-# Features Supported by the Default Distribution
+# Supported Features
 * Downloading all files present.
 
 

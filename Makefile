@@ -21,7 +21,7 @@ $(DOCPATH)/chandere.1: $(DOCPATH)/chandere.1.md
 	pandoc $(DOCPATH)/chandere.1.md -s -t man > $(DOCPATH)/chandere.1
 
 $(DOCPATH)/chandere.1.gz: $(DOCPATH)/chandere.1
-	gzip -k $(DOCPATH)/chandere.1
+	gzip -q -k $(DOCPATH)/chandere.1
 
 doc: $(DOCPATH)/chandere.1.gz
 
