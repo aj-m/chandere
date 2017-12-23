@@ -53,6 +53,11 @@ class ActionsAction(argparse.Action):
         for action in list_actions():
             module = load_action(action)
 
+            if hasattr(module, "__doc__"):
+                description = module.__doc__
+            else:
+                description = "[No description provided]"
+
             if hasattr(module, "__author__"):
                 author = module.__author__
             else:
@@ -63,7 +68,7 @@ class ActionsAction(argparse.Action):
             else:
                 version = "[Unknown]"
 
-            output.put("{} - '{}'".format(action, module.__doc__))
+            output.put("{} - '{}'".format(action, description))
             output.info("By {}, version {}".format(
                 author,
                 version
@@ -78,6 +83,11 @@ class ScrapersAction(argparse.Action):
         for website in list_scrapers():
             module = load_scraper(website)
 
+            if hasattr(module, "__doc__"):
+                description = module.__doc__
+            else:
+                description = "[No description provided]"
+
             if hasattr(module, "__author__"):
                 author = module.__author__
             else:
@@ -88,7 +98,7 @@ class ScrapersAction(argparse.Action):
             else:
                 version = "[Unknown]"
 
-            output.put("{} - '{}'".format(website, module.__doc__))
+            output.put("{} - '{}'".format(website, description))
             output.info("By {}, version {}".format(
                 author,
                 version
@@ -176,7 +186,7 @@ ACTION_ARGS = []
 PARSER = argparse.ArgumentParser(
     add_help=False,
     formatter_class=CustomHelp,
-    usage="%(prog)s (TARGETS) [-s ALIAS] [OPTIONS]",
+    usage="%(prog)s TARGETS [OPTIONS]",
     description=wrap(__doc__)
 )
 PARSER.register("action", "actions", ActionsAction)
@@ -243,7 +253,7 @@ SCRAPER_OPTIONS.add_argument(
     default="download",
     help=wrap(
         "The action to be performed on all collected posts. Defaults to "
-        "'download'."
+        "'download', which will download every file in the provided targets."
     )
 )
 SCRAPER_OPTIONS.add_argument(
@@ -252,7 +262,7 @@ SCRAPER_OPTIONS.add_argument(
     metavar="X",
     default="4chan",
     help=wrap(
-        "The website to scrape from."
+        "The website to scrape from. Defaults to '4chan'."
     )
 )
 SCRAPER_OPTIONS.add_argument(

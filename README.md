@@ -53,24 +53,38 @@ $ make doc
 ```
 
 
-# Tutorial
+# Examples
 
-TODO
+```
+chandere /fit/17018018
+```
+
+Download all images from 'https://boards.4chan.org/fit/thread/17018018/' into
+the current working directory, preserving the original filenames.
+
+```
+chandere -o "{index}.{ext}" /fit/17018018
+```
+
+Perform the same as the above, but instead save every image to a filename
+containing the index at which it was encountered.
+
+```
+chandere /tech/ -w 8chan
+```
+
+Download all images from 'https://8ch.net/tech/res/589254.html'.
 
 
 # Extending
 
-TODO
+See [HACKING.md][2].
 
 
 # TODO
 
-## Short Term Proposals
 * Fix ordering of TARGETS.
-* Add support for HTTP/SOCKS proxying and Hidden Services.
-
-## Long Term Proposals
-* GUI
+* Expose an API such that Chandere can be used as a library.
 
 [1]: http://jakob.space/
 [2]: https://github.com/TsarFox/chandere/blob/master/HACKING.md

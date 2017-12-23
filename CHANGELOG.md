@@ -1,4 +1,4 @@
-This document records all notable changes to Chandere2.
+This document records all notable changes to Chandere.
 
 
 ## Version 2.5.0
@@ -7,6 +7,19 @@ This document records all notable changes to Chandere2.
   * The "2" was appended in an attempt to keep this repository separate from an
     older, synchronous version of the software, but that repository has since
     been removed from Github.
+* The codebase has been completely rewritten, and now operates on a system of
+  modularized website scrapers and actions. Adding support for a new website or
+  task no longer requires fiddling with fragile "contexts.
+* The following features have been temporarily removed:
+  * Archiving posts to plaintext, SQL.
+  * Post filtering.
+  * Hammering the servers with --continuous
+* Support for the following websites has been temporarily removed on a provisional basis:
+  * 76chan
+  * endchan
+  * lainchan
+  * nextchan
+  * uboachan
 
 
 ## Version 2.4.1

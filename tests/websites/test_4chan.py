@@ -3,7 +3,7 @@ from urllib.parse import unquote
 import hypothesis
 import hypothesis.strategies as st
 
-from chandere.util import load_scraper
+from chandere.loader import load_scraper
 
 
 @hypothesis.given(st.text())

@@ -48,8 +48,8 @@ arguments. When this is done depends on the type of module (see below).
 Additionally, arguments will be passed to your module in the form of a list, and
 a good portion of them will not be defined within your `PARSER`. Rather than
 parsing arguments with `ArgumentParser.parse_args`, you should use
-`ArgumentParser.parse_known_args`. If you care for being idiomatic, I would
-suggest the following:
+`ArgumentParser.parse_known_args`. If you care for being idiomatic, the
+following is in good taste:
 
 ```
 args, _ = PARSER.parse_known_args(argv)
@@ -61,7 +61,8 @@ Aside from `PARSER` as mentioned above, the following functions are expected to
 be exposed:
 
 ```
-
+# Entry point to the action.
+def invoke(scraper: object, targets: list, argv: list) -> Coroutine
 ```
 
 ### Adding Support for a Website
@@ -70,8 +71,19 @@ Aside from `PARSER` as mentioned above, the following functions are expected to
 be exposed:
 
 ```
-# Generator which collects files from the given targets.
-async def collect_files(board: str, thread=None) -> types.GeneratorType
+# Parses targets into a format that will be understood by other exposed functions in this module.
+def parse_target(target: str) -> Any
+```
+
+The following may be exposed as appropriate. Action modules should check for
+their presence before blindly invoking them.
+
+```
+# Yields posts in a target.
+def collect_posts(target: str) -> AsyncGenerator[dict]
+
+# Yields files in a target, represented as tuples of the post and a url to the file resource.
+def collect_files(target: str) -> AsyncGenerator[Tuple[dict, str]]
 ```
 
 

@@ -50,8 +50,20 @@ def _threads_from_page(page: dict) -> list:
     return [int(thread.get("no")) for thread in page.get("threads")]
 
 
+async def _collect_threads(board: str):
+    uri = _catalog_url(board)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(uri) as response:
+            check_http_status(response.status, uri)
+            for page in await response.json():
+                if "threads" not in page:
+                    continue
+                for thread in _threads_from_page(page):
+                    yield thread
+
+
 async def _collect_files_thread(board: str, thread: int):
-    for post in await _collect_posts(board, thread):
+    async for post in _collect_posts(board, thread):
         if "tim" in post and "filename" in post and "ext" in post:
             url = _file_url(board, post.get("tim"), post.get("ext"))
             yield (post, url)
@@ -67,29 +79,14 @@ async def _collect_files_board(board: str):
         yield await _collect_files_thread(board, thread)
 
 
-async def _collect_threads(board: str):
-    uri = _catalog_url(board)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(uri) as response:
-            check_http_status(response.status, uri)
-            for page in await response.json():
-                if "threads" not in page:
-                    continue
-                yield _threads_from_page(page)
-
-
 async def _collect_posts(board: str, thread: str):
     uri = _thread_url(board, thread)
     async with aiohttp.ClientSession() as session:
         async with session.get(uri) as response:
             check_http_status(response.status, uri)
             json = await response.json()
-            return json.get("posts", [])
-
-
-def collect_threads(target: str):
-    board, thread = target
-    return _collect_threads(board)
+            for post in json.get("posts", []):
+                yield post
 
 
 def collect_files(target: str):

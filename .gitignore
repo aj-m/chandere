@@ -11,5 +11,5 @@ dist/
 *.pyc
 *.egg
 
-src_old/
-tests_old/
+docs/*.1
+docs/*.1.gz
