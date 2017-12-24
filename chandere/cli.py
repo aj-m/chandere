@@ -115,6 +115,19 @@ class VerbosifyAction(argparse.Action):
         output.verbose = True
 
 
+class CustomVersionAction(argparse.Action):
+    """Action for displaying the currently installed version."""
+    def __call__(self, parser, namespace, values, option_string=None):
+        output.put("chandere {} : ".format(__version__), end="")
+        output.put('"People Actually Use This?" Edition')
+        output.put("Copyright (C) 2017 Jakob Kreuze")
+        output.put("This is free software; see the source for copying "
+                   "conditions. There is NO")
+        output.put("warranty; not even for MERCHANTABILITY or FITNESS FOR A "
+                   "PARTICULAR PURPOSE.")
+        sys.exit(0)
+
+
 # Touching private data members like this is probably going to break
 # some time in the future, lmfao. Maybe at this point I should have just
 # written my own argument parser.
@@ -193,6 +206,7 @@ PARSER.register("action", "actions", ActionsAction)
 PARSER.register("action", "scrapers", ScrapersAction)
 PARSER.register("action", "verbosify", VerbosifyAction)
 PARSER.register("action", "help", CustomHelpAction)
+PARSER.register("action", "version", CustomVersionAction)
 
 
 DOCUMENTATION = PARSER.add_argument_group("Documentation")
@@ -210,7 +224,7 @@ DOCUMENTATION.add_argument(
     "-V",
     "--version",
     action="version",
-    version=__version__,
+    nargs=0,
     help=wrap(
         "Display the current version and exit."
     )

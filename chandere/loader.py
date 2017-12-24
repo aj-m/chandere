@@ -44,7 +44,7 @@ def _list_submodules(package: str) -> types.GeneratorType:
         module = importlib.import_module("chandere.{}".format(package))
         package_path = module.__path__[0]
         for filename in os.listdir(package_path):
-            if filename.endswith(".py") and filename != "__init__.py":
+            if filename.endswith(".py") and filename[0] != "_":
                 yield filename[:-3]
     except (AttributeError, IndexError):
         raise ChandereError("Could not locate '{}' package.".format(package))

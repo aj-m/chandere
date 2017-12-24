@@ -30,7 +30,7 @@ from chandere.loader import load_custom_scraper, load_scraper
 def main():
     # There are a handful of code paths that aren't called from this
     # entry routine. See `cli.py` for routines such as --list-actions
-    args, _ = PARSER.parse_known_args(reorder_args(sys.argv[1:]))
+    args, unparsed = PARSER.parse_known_args(reorder_args(sys.argv[1:]))
     loop = asyncio.get_event_loop()
 
     try:
@@ -48,7 +48,7 @@ def main():
             raise ChandereError("Scraper module lacks a target parser.")
 
         targets = [scraper.parse_target(target) for target in args.targets]
-        loop.run_until_complete(action.invoke(scraper, targets, sys.argv))
+        loop.run_until_complete(action.invoke(scraper, targets, unparsed))
 
     except ChandereError as e:
         output.error(str(e))

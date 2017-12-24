@@ -14,6 +14,7 @@ Chandere is free software, licensed under the [GNU General Public License.][3]
 # Supported Websites
 * 4chan
 * 8chan
+* danbooru
 
 
 # Supported Features
@@ -84,6 +85,7 @@ See [HACKING.md][2].
 
 # TODO
 
+* Handle files of the same name in the download.py action.
 * Fix ordering of TARGETS.
 * Expose an API such that Chandere can be used as a library.
 

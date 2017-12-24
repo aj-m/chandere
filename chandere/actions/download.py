@@ -51,12 +51,6 @@ async def _download_file(uri: str, out_path: str):
                 out.write(await response.read())
 
 
-def _tidy_post_fields(post: dict, seq_index: int):
-    if "ext" in post and post["ext"][0] == ".":
-        post["ext"] = post["ext"][1:]
-    post["index"] = seq_index
-
-
 async def invoke(scraper: object, targets: list, argv: list):
     if not hasattr(scraper, "collect_files"):
         msg = "'{}' module cannot collect files.".format(scraper.__name__)
@@ -68,7 +62,7 @@ async def invoke(scraper: object, targets: list, argv: list):
     for target in targets:
         async for parsed_file in scraper.collect_files(target):
             post, uri = parsed_file
-            _tidy_post_fields(post, seq_index)
+            post["index"] = seq_index
             out_path = args.output.format(**post)
             seq_index += 1
             await _download_file(uri, out_path)

@@ -41,20 +41,20 @@ def _ansi_wrap(escape: str, line: str) -> str:
     return _ansi_escape(escape) + line + _ansi_escape(ANSI_RESET)
 
 
-def info(msg: str):
+def info(msg="", end="\n"):
     """Displays a message to the console, if running in verbose mode."""
     if verbose:
-        sys.stdout.write(msg + "\n")
+        sys.stdout.write(msg + end)
 
 
-def put(msg: str):
+def put(msg="", end="\n"):
     """Displays a message to the console unconditionally."""
-    sys.stdout.write(msg + "\n")
+    sys.stdout.write(msg + end)
 
 
-def error(msg: str):
+def error(msg="", end="\n"):
     """Displays a message to the console unconditionally with scary red
     text to emphasize that a critical error has occurred.
     """
     sys.stdout.write(_ansi_wrap("38;5;9", "Critical Error: "))
-    sys.stdout.write(msg + "\n")
+    sys.stdout.write(msg + end)

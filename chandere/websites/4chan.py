@@ -19,17 +19,20 @@
 
 __author__ = "Jakob L. Kreuze <jakob@memeware.net>"
 __licence__ = "GPLv3"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from urllib.parse import quote
-import re
 
 import aiohttp
 
-from chandere.errors import check_http_status
+from chandere.errors import ChandereError, check_http_status
+from chandere.websites._common import contains_uri_scheme, parse_crosslink
+from chandere.websites._common import parse_imageboard_uri_factory
 
 API_BASE = "https://a.4cdn.org"
 RES_BASE = "https://i.4cdn.org"
+
+parse_uri = parse_imageboard_uri_factory("org", "thread")
 
 
 def _catalog_url(board: str) -> str:
@@ -41,7 +44,12 @@ def _thread_url(board: str, thread: str) -> str:
 
 
 def _file_url(board: str, tim: str, ext: str) -> str:
-    return RES_BASE + "/{}/{}{}".format(board, tim, ext)
+    return RES_BASE + "/{}/{}.{}".format(board, tim, ext)
+
+
+def _tidy_post_fields(post: dict):
+    if "ext" in post and post["ext"][0] == ".":
+        post["ext"] = post["ext"][1:]
 
 
 def _threads_from_page(page: dict) -> list:
@@ -69,7 +77,8 @@ async def _collect_files_thread(board: str, thread: int):
 
 async def _collect_files_board(board: str):
     async for thread in _collect_threads(board):
-        yield await _collect_files_thread(board, thread)
+        async for resource in _collect_files_thread(board, thread):
+            yield resource
 
 
 async def _collect_posts(board: str, thread: str):
@@ -79,28 +88,25 @@ async def _collect_posts(board: str, thread: str):
             check_http_status(response.status, uri)
             json = await response.json()
             for post in json.get("posts", []):
+                _tidy_post_fields(post)
                 yield post
 
 
-def collect_files(target: str):
+def collect_files(target: tuple):
     board, thread = target
     if thread is not None:
         return _collect_files_thread(board, thread)
     return _collect_files_board(board)
 
 
-def collect_posts(target: str):
+def collect_posts(target: tuple):
     board, thread = target
     return _collect_posts(board, thread)
 
 
 def parse_target(target: str) -> tuple:
-    target = quote(target, safe="/ ", errors="ignore").strip()
-
-    match = re.search(r"(?<=\/)?[^\s\/]+(?=[\/ ])?", target)
-    board = match.group() if match else None
-
-    match = re.search(r"(?<=[^\s\/][\/ ])\d+(?=\/)?", target)
-    thread = match.group() if match else None
-
+    parse = parse_uri if contains_uri_scheme(target) else parse_crosslink
+    board, thread = parse(target)
+    if board is None:
+        raise ChandereError("Invalid target '{}'".format(target))
     return (board, thread)
