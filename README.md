@@ -15,9 +15,11 @@ Chandere is free software, licensed under the [GNU General Public License.][3]
 * 4chan
 * 8chan
 * danbooru
+* dangeru
 
 
 # Supported Features
+* Archiving to CSV.
 * Downloading all files present.
 
 

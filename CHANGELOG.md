@@ -10,10 +10,14 @@ This document records all notable changes to Chandere.
 * The codebase has been completely rewritten, and now operates on a system of
   modularized website scrapers and actions. Adding support for a new website or
   task no longer requires fiddling with fragile "contexts.
+* The following features have been implemented:
+  * Archiving posts to CSV.
 * The following features have been temporarily removed:
   * Archiving posts to plaintext, SQL.
   * Post filtering.
   * Hammering the servers with --continuous
+* Support for the following websites has been implemented:
+  * danbooru
 * Support for the following websites has been temporarily removed on a provisional basis:
   * 76chan
   * endchan

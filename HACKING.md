@@ -67,6 +67,19 @@ def invoke(scraper: object, targets: list, argv: list) -> Coroutine
 
 ### Adding Support for a Website
 
+Posts are represented as Python dictionaries and can contain arbitrary
+fields. However, action modules expect fields to have specific names and
+formats. Keep in mind that these fields do not necessarily have to be present,
+but these are what the field names should be:
+
+* *id*: The unique, numeric identifier for the post.
+* *time_posted*: A UNIX timestamp for when the post was created.
+* *name*: The display name of the user who created the post.
+* *title*: The title of the post.
+* *comment*: The body of the post.
+* *filename*: The attached file's filename, excluding the extension.
+* *ext*: The extension of the attached file, e.g. "png"
+
 Aside from `PARSER` as mentioned above, the following functions are expected to
 be exposed:
 

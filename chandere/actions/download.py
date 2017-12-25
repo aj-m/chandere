@@ -32,7 +32,7 @@ PARSER = argparse.ArgumentParser(add_help=False)
 PARSER.add_argument(
     "-o",
     "--output",
-    metavar="DIR",
+    metavar="PATH",
     default="./{filename}.{ext}",
     help=wrap(
         "A template for output filenames. Defaults to './{filename}.{ext}', "
@@ -60,8 +60,8 @@ async def invoke(scraper: object, targets: list, argv: list):
     seq_index = 1
 
     for target in targets:
-        async for parsed_file in scraper.collect_files(target):
-            post, uri = parsed_file
+        async for resource in scraper.collect_files(target):
+            post, uri = resource
             post["index"] = seq_index
             out_path = args.output.format(**post)
             seq_index += 1

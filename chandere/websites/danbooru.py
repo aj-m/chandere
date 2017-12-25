@@ -21,21 +21,28 @@ __author__ = "Jakob L. Kreuze <jakob@memeware.net>"
 __licence__ = "GPLv3"
 __version__ = "0.1.0"
 
+from dateutil.parser import parse
 import itertools
 
 import aiohttp
 
 from chandere.errors import check_http_status
 
+FIELD_NAMES = ["id", "time_posted", "name", "filename"]
+
 API_BASE = "https://danbooru.donmai.us"
 
 
 def _tidy_post_fields(post: dict):
+    post["name"] = post.get("uploader_name")
+    post["time_posted"] = int(parse(post.get("created_at")).timestamp())
     if "large_file_url" in post:
         url = post.get("large_file_url")
         post["filename"] = url[url.rindex("/") + 1:-4]
     if "file_ext" in post:
         post["ext"] = post.get("file_ext")
+
+    del post["uploader_name"]
 
 
 async def collect_files(target: str):
@@ -49,7 +56,7 @@ async def collect_posts(target: str):
     params = {"tags": target}
     async with aiohttp.ClientSession() as session:
         for i in itertools.count():
-            params["page"] = str(i)
+            params["page"] = i
             async with session.get(uri, params=params) as response:
                 check_http_status(response.status, uri)
                 posts = await response.json()

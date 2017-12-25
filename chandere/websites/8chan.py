@@ -19,15 +19,18 @@
 
 __author__ = "Jakob L. Kreuze <jakob@memeware.net>"
 __licence__ = "GPLv3"
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from urllib.parse import quote
+import html
 
 import aiohttp
 
 from chandere.errors import ChandereError, check_http_status
 from chandere.websites._common import contains_uri_scheme, parse_crosslink
 from chandere.websites._common import parse_imageboard_uri_factory
+
+FIELD_NAMES = ["id", "time_posted", "name", "title", "comment", "filename"]
 
 API_BASE = "https://8ch.net"
 RES_BASE = "https://media.8ch.net"
@@ -50,8 +53,17 @@ def _file_url(board: str, tim: str, ext: str) -> str:
 
 
 def _tidy_post_fields(post: dict):
+    post["id"] = post.get("no")
+    post["time_posted"] = post.get("time")
+    post["title"] = post.get("sub")
+    post["comment"] = html.unescape(post.get("com"))
     if "ext" in post and post["ext"][0] == ".":
         post["ext"] = post["ext"][1:]
+
+    del post["no"]
+    del post["time"]
+    del post["sub"]
+    del post["com"]
 
 
 def _threads_from_page(page: dict) -> list:
@@ -68,6 +80,23 @@ async def _collect_threads(board: str):
                     continue
                 for thread in _threads_from_page(page):
                     yield thread
+
+
+async def _collect_posts_thread(board: str, thread: str):
+    uri = _thread_url(board, thread)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(uri) as response:
+            check_http_status(response.status, uri)
+            json = await response.json()
+            for post in json.get("posts", []):
+                _tidy_post_fields(post)
+                yield post
+
+
+async def _collect_posts_board(board: str):
+    async for thread in _collect_threads(board):
+        for post in _collect_posts_thread(board, thread):
+            yield post
 
 
 async def _collect_files_thread(board: str, thread: int):
@@ -88,17 +117,6 @@ async def _collect_files_board(board: str):
             yield resource
 
 
-async def _collect_posts(board: str, thread: str):
-    uri = _thread_url(board, thread)
-    async with aiohttp.ClientSession() as session:
-        async with session.get(uri) as response:
-            check_http_status(response.status, uri)
-            json = await response.json()
-            for post in json.get("posts", []):
-                _tidy_post_fields(post)
-                yield post
-
-
 def collect_files(target: tuple):
     board, thread = target
     if thread is not None:
@@ -108,7 +126,9 @@ def collect_files(target: tuple):
 
 def collect_posts(target: tuple):
     board, thread = target
-    return _collect_posts(board, thread)
+    if thread is not None:
+        return _collect_posts_thread(board, thread)
+    return _collect_posts_board(board)
 
 
 def parse_target(target: str) -> tuple:

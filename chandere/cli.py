@@ -50,7 +50,7 @@ class CustomHelp(argparse.HelpFormatter):
 class ActionsAction(argparse.Action):
     """Lists all action modules."""
     def __call__(self, parser, namespace, values, option_string=None):
-        for action in list_actions():
+        for action in sorted(list_actions()):
             module = load_action(action)
 
             if hasattr(module, "__doc__"):
@@ -80,7 +80,7 @@ class ActionsAction(argparse.Action):
 class ScrapersAction(argparse.Action):
     """Lists all scraping modules."""
     def __call__(self, parser, namespace, values, option_string=None):
-        for website in list_scrapers():
+        for website in sorted(list_scrapers()):
             module = load_scraper(website)
 
             if hasattr(module, "__doc__"):
