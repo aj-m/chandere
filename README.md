@@ -1,12 +1,16 @@
 ![Chandere][img_1]
-## A command-line utility programmed and maintained by [Jakob.][1]
 An extremely modular asynchronous archiving tool for various imageboards,
 textboards, and Boorus.
 
-Chandere 2.5.0 is currently in the alpha state of development, and is likely to
-bring many bugs. See [HACKING.md][2] for information on reporting issues.
+As of 2.5.0, Chandere is abandoned. It has gone through several rewrites, and
+does not have a large enough userbase to motivate me to continue maintaining
+it. The current state of the repository is very unstable and marks an attempt at
+making a more modular interface for adding website and action support.
+[2.4.1][4] is stable and works, if you wish to use Chandere. If you are
+interested in picking up development and maintenance, see [HACKING.md][1] and
+consider contacting me.
 
-Chandere is free software, licensed under the [GNU General Public License.][3]
+Chandere is free software, licensed under the [GNU General Public License.][2]
 
 [![Build Status](https://travis-ci.org/TsarFox/chandere.svg?branch=master)](https://travis-ci.org/TsarFox/chandere)  [![PyPI Version](https://img.shields.io/pypi/v/Chandere.svg)](https://pypi.python.org/pypi/Chandere/)  [![AUR Version](https://img.shields.io/aur/version/chandere2.svg)](https://aur.archlinux.org/packages/chandere2/)  [![License](https://img.shields.io/github/license/tsarfox/chandere.svg)](https://www.gnu.org/licenses/gpl.html)
 
@@ -19,33 +23,22 @@ Chandere is free software, licensed under the [GNU General Public License.][3]
 
 
 # Supported Features
-* Archiving to CSV.
-* Downloading all files present.
+* Downloading files
+* Archiving to CSV
 
 
 # Installation
-**Arch Linux** users are encouraged to install Chandere using Pacman, as it is
-packaged in the [AUR.][4]
 
-```
-$ # If the PKGBUILD is in the current working directory:
-$ makepkg -si
-```
+Chandere is packaged in the [AUR][3], so **Arch Linux** users are encouraged to
+install Chandere with makepkg.
 
 If you are running a distribution for which Chandere is not yet packaged, or are
-not running Linux, the recommended means of installation is through Pip.
+not running Linux, the suggested means of installation is through Pip.
 
 ```
 $ # It is recommended that you use the latest version of pip and setuptools when installing Chandere.
 # pip install --upgrade pip setuptools
 # pip install --upgrade chandere
-```
-
-`setup.py` in the repository's root directory can be used if Pip is not
-available, however this is not recommended.
-
-```
-# python setup.py install
 ```
 
 If Chandere is installed with Pip or setup.py, manpages will have to be manually
@@ -91,9 +84,9 @@ See [HACKING.md][2].
 * Fix ordering of TARGETS.
 * Expose an API such that Chandere can be used as a library.
 
-[1]: http://jakob.space/
-[2]: https://github.com/TsarFox/chandere/blob/master/HACKING.md
-[3]: http://gnu.org/licenses/gpl.html
-[4]: https://aur.archlinux.org/packages/chandere/
+[1]: https://github.com/TsarFox/chandere/blob/master/HACKING.md
+[2]: http://gnu.org/licenses/gpl.html
+[3]: https://aur.archlinux.org/packages/chandere/
+[4]: https://github.com/TsarFox/chandere/releases/tag/v2.4.1
 
 [img_1]: https://raw.githubusercontent.com/TsarFox/chandere/master/chandere_logo.png

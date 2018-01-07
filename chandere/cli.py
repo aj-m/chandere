@@ -263,7 +263,7 @@ SCRAPER_OPTIONS.add_argument(
 SCRAPER_OPTIONS.add_argument(
     "-a",
     "--action",
-    metavar="X",
+    metavar="",
     default="download",
     help=wrap(
         "The action to be performed on all collected posts. Defaults to "
@@ -273,7 +273,7 @@ SCRAPER_OPTIONS.add_argument(
 SCRAPER_OPTIONS.add_argument(
     "-w",
     "--website",
-    metavar="X",
+    metavar="",
     default="4chan",
     help=wrap(
         "The website to scrape from. Defaults to '4chan'."
@@ -281,14 +281,14 @@ SCRAPER_OPTIONS.add_argument(
 )
 SCRAPER_OPTIONS.add_argument(
     "--custom-action",
-    metavar="X",
+    metavar="",
     help=wrap(
         "Path to a python script exposing the action API to be used."
     )
 )
 SCRAPER_OPTIONS.add_argument(
     "--custom-scraper",
-    metavar="X",
+    metavar="",
     help=wrap(
         "Path to a python script exposing the scraping API to be used."
     )

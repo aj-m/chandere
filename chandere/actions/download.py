@@ -32,7 +32,7 @@ PARSER = argparse.ArgumentParser(add_help=False)
 PARSER.add_argument(
     "-o",
     "--output",
-    metavar="PATH",
+    metavar="",
     default="./{filename}.{ext}",
     help=wrap(
         "A template for output filenames. Defaults to './{filename}.{ext}', "

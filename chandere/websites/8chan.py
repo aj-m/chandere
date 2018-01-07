@@ -62,7 +62,7 @@ def _tidy_post_fields(post: dict):
 
     del post["no"]
     del post["time"]
-    del post["sub"]
+    # del post["sub"]
     del post["com"]
 
 
@@ -100,7 +100,7 @@ async def _collect_posts_board(board: str):
 
 
 async def _collect_files_thread(board: str, thread: int):
-    async for post in _collect_posts(board, thread):
+    async for post in _collect_posts_thread(board, thread):
         if "tim" in post and "filename" in post and "ext" in post:
             url = _file_url(board, post.get("tim"), post.get("ext"))
             yield (post, url)
