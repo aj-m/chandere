@@ -1,0 +1,8 @@
+To do
+	Bang on the program to find any obvious issues
+	GUI mode
+
+Fixes
+	Danbooru module (fails Travis build)
+	Avoid log/traceback dumps when possible (fixed before abandonment?)
+
